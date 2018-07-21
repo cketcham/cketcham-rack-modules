@@ -1,4 +1,4 @@
-#include "Template.hpp"
+#include "GVerbWidget.hpp"
 extern "C" 
 {
 	#include "../include/gverb.h"
@@ -23,7 +23,7 @@ struct Follower {
 	}
 };
 
-struct MyModule : Module {
+struct GVerbModule : Module {
 	enum ParamIds {
 		ROOM_SIZE_PARAM,
 		REV_TIME_PARAM,
@@ -69,7 +69,7 @@ struct MyModule : Module {
 
 	ty_gverb* gverb = NULL;
 
-	MyModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+	GVerbModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 	}
 	void step() override;
 	void disposeGverb();
@@ -94,30 +94,27 @@ struct MyModule : Module {
 	// - onReset, onRandomize, onCreate, onDelete: implements special behavior when user clicks these from the context menu
 };
 
-void MyModule::disposeGverb() {
+void GVerbModule::disposeGverb() {
 	if (gverb != NULL) {
 		gverb_free(gverb);
 		gverb = NULL;
 	}
 }
 
-float MyModule::getParam(ParamIds param, InputIds mod, ParamIds trim, float min, float max) {
+float GVerbModule::getParam(ParamIds param, InputIds mod, ParamIds trim, float min, float max) {
 	return clamp2(params[param].value + (((clamp2(inputs[mod].value, -10.f, 10.f)/10) * max) * params[trim].value), min, max);
 }
 
-void MyModule::handleParam(float value, float* store, void (*change)(ty_gverb*,float)) {
+void GVerbModule::handleParam(float value, float* store, void (*change)(ty_gverb*,float)) {
 	if (*store != value) {
-		//info("Change old: %f, new: %f", *store, value);
 		change(gverb, value);
 		*store = value;
 	}
 }
 
-void MyModule::step() {
+void GVerbModule::step() {
 	auto reset = max(params[RESET_PARAM].value, inputs[RESET_INPUT].value);
 	auto mix = getParam(MIX_PARAM, MIX_INPUT, MIX_POT_PARAM, 0.f, 1.f);
-
-	//info("Mix: %f, %f, %f, %f, %f, %f", mix, params[MIX_PARAM].value, clamp2(inputs[MIX_INPUT].value, -10.f, 10.f), params[MIX_POT_PARAM].value, 0.f, 1.f);
 
 	if (p_frequency != engineGetSampleRate()) { disposeGverb(); }
 	if (params[MIX_PARAM].value == 0.f) { disposeGverb(); }
@@ -130,7 +127,6 @@ void MyModule::step() {
 	if (gverb == NULL) {
 
 		if (mix > 0.f) {
-			info("Creating with mix %f", mix);
 			gverb = gverb_new(
 				engineGetSampleRate(), // freq
 				300,    // max room size
@@ -183,45 +179,45 @@ void MyModule::step() {
 	}
 }
 
-struct MyModuleWidget : ModuleWidget {
-	MyModuleWidget(MyModule *module) : ModuleWidget(module) {
+struct GVerbModuleWidget : ModuleWidget {
+	GVerbModuleWidget(GVerbModule *module) : ModuleWidget(module) {
 		setPanel(SVG::load(assetPlugin(plugin, "res/Reverb.svg")));
 
-		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 44), module, MyModule::ROOM_SIZE_PARAM, 2.0, 300.0, 2.0));
-		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 115), module, MyModule::DAMPING_PARAM, 0.0, 1.0, 0.95));
+		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 44), module, GVerbModule::ROOM_SIZE_PARAM, 2.0, 300.0, 2.0));
+		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 115), module, GVerbModule::DAMPING_PARAM, 0.0, 1.0, 0.95));
 
-		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(127, 60), module, MyModule::REV_TIME_PARAM, 0.0, 10000.0, 5000.0));
-		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(127, 120), module, MyModule::BANDWIDTH_PARAM, 0.0, 1.0, 1.0));
-		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(185, 60), module, MyModule::EARLY_LEVEL_PARAM, 0.0, 1.0, 0.8));
-		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(185, 120), module, MyModule::TAIL_LEVEL_PARAM, 0.0, 1.0, 0.5));
+		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(127, 60), module, GVerbModule::REV_TIME_PARAM, 0.0, 10000.0, 5000.0));
+		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(127, 120), module, GVerbModule::BANDWIDTH_PARAM, 0.0, 1.0, 1.0));
+		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(185, 60), module, GVerbModule::EARLY_LEVEL_PARAM, 0.0, 1.0, 0.8));
+		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(185, 120), module, GVerbModule::TAIL_LEVEL_PARAM, 0.0, 1.0, 0.5));
 
-		addParam(ParamWidget::create<RoundBlackKnob>(Vec(84, 189), module, MyModule::MIX_PARAM, 0.0, 1.0, 1.0));
-		addParam(ParamWidget::create<RoundBlackKnob>(Vec(135, 189), module, MyModule::SPREAD_PARAM, 0.0, 1.0, 1.0));
-		addParam(ParamWidget::create<PB61303>(Vec(186, 189), module, MyModule::RESET_PARAM, 0.0, 1.0, 0.0));
+		addParam(ParamWidget::create<RoundBlackKnob>(Vec(84, 189), module, GVerbModule::MIX_PARAM, 0.0, 1.0, 1.0));
+		addParam(ParamWidget::create<RoundBlackKnob>(Vec(135, 189), module, GVerbModule::SPREAD_PARAM, 0.0, 1.0, 1.0));
+		addParam(ParamWidget::create<PB61303>(Vec(186, 189), module, GVerbModule::RESET_PARAM, 0.0, 1.0, 0.0));
 
-		addParam(ParamWidget::create<Trimpot>(Vec(15, 263), module, MyModule::ROOM_SIZE_POT_PARAM, -1.f, 1.f, 0.f));
-		addParam(ParamWidget::create<Trimpot>(Vec(42, 263), module, MyModule::DAMPING_POT_PARAM, -1.f, 1.f, 0.f));
-		addParam(ParamWidget::create<Trimpot>(Vec(70, 263), module, MyModule::REV_TIME_POT_PARAM, -1.f, 1.f, 0.f));
-		addParam(ParamWidget::create<Trimpot>(Vec(97, 263), module, MyModule::BANDWIDTH_POT_PARAM, -1.f, 1.f, 0.f));
-		addParam(ParamWidget::create<Trimpot>(Vec(124, 263), module, MyModule::EARLY_LEVEL_POT_PARAM, -1.f, 1.f, 0.f));
-		addParam(ParamWidget::create<Trimpot>(Vec(151, 263), module, MyModule::TAIL_LEVEL_POT_PARAM, -1.f, 1.f, 0.f));
-		addParam(ParamWidget::create<Trimpot>(Vec(178, 263), module, MyModule::MIX_POT_PARAM, -1.f, 1.f, 0.f));
-		addParam(ParamWidget::create<Trimpot>(Vec(205, 263), module, MyModule::SPREAD_POT_PARAM, -1.f, 1.f, 0.f));
+		addParam(ParamWidget::create<Trimpot>(Vec(15, 263), module, GVerbModule::ROOM_SIZE_POT_PARAM, -1.f, 1.f, 0.f));
+		addParam(ParamWidget::create<Trimpot>(Vec(42, 263), module, GVerbModule::DAMPING_POT_PARAM, -1.f, 1.f, 0.f));
+		addParam(ParamWidget::create<Trimpot>(Vec(70, 263), module, GVerbModule::REV_TIME_POT_PARAM, -1.f, 1.f, 0.f));
+		addParam(ParamWidget::create<Trimpot>(Vec(97, 263), module, GVerbModule::BANDWIDTH_POT_PARAM, -1.f, 1.f, 0.f));
+		addParam(ParamWidget::create<Trimpot>(Vec(124, 263), module, GVerbModule::EARLY_LEVEL_POT_PARAM, -1.f, 1.f, 0.f));
+		addParam(ParamWidget::create<Trimpot>(Vec(151, 263), module, GVerbModule::TAIL_LEVEL_POT_PARAM, -1.f, 1.f, 0.f));
+		addParam(ParamWidget::create<Trimpot>(Vec(178, 263), module, GVerbModule::MIX_POT_PARAM, -1.f, 1.f, 0.f));
+		addParam(ParamWidget::create<Trimpot>(Vec(205, 263), module, GVerbModule::SPREAD_POT_PARAM, -1.f, 1.f, 0.f));
 
-		addInput(Port::create<PJ301MPort>(Vec(14, 286), Port::INPUT, module, MyModule::ROOM_SIZE_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(41, 286), Port::INPUT, module, MyModule::DAMPING_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(68, 286), Port::INPUT, module, MyModule::REV_TIME_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(95, 286), Port::INPUT, module, MyModule::BANDWIDTH_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(123, 286), Port::INPUT, module, MyModule::EARLY_LEVEL_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(150, 286), Port::INPUT, module, MyModule::TAIL_LEVEL_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(177, 286), Port::INPUT, module, MyModule::MIX_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(204, 286), Port::INPUT, module, MyModule::SPREAD_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(232, 286), Port::INPUT, module, MyModule::RESET_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(14, 286), Port::INPUT, module, GVerbModule::ROOM_SIZE_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(41, 286), Port::INPUT, module, GVerbModule::DAMPING_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(68, 286), Port::INPUT, module, GVerbModule::REV_TIME_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(95, 286), Port::INPUT, module, GVerbModule::BANDWIDTH_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(123, 286), Port::INPUT, module, GVerbModule::EARLY_LEVEL_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(150, 286), Port::INPUT, module, GVerbModule::TAIL_LEVEL_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(177, 286), Port::INPUT, module, GVerbModule::MIX_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(204, 286), Port::INPUT, module, GVerbModule::SPREAD_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(232, 286), Port::INPUT, module, GVerbModule::RESET_INPUT));
 
-		addInput(Port::create<PJ301MPort>(Vec(14, 332), Port::INPUT, module, MyModule::AUDIO_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(14, 332), Port::INPUT, module, GVerbModule::AUDIO_INPUT));
 
-		addOutput(Port::create<PJ301MPort>(Vec(204, 332), Port::OUTPUT, module, MyModule::LEFT_OUTPUT));
-		addOutput(Port::create<PJ301MPort>(Vec(232, 332), Port::OUTPUT, module, MyModule::RIGHT_OUTPUT));
+		addOutput(Port::create<PJ301MPort>(Vec(204, 332), Port::OUTPUT, module, GVerbModule::LEFT_OUTPUT));
+		addOutput(Port::create<PJ301MPort>(Vec(232, 332), Port::OUTPUT, module, GVerbModule::RIGHT_OUTPUT));
 	}
 };
 
@@ -230,4 +226,4 @@ struct MyModuleWidget : ModuleWidget {
 // author name for categorization per plugin, module slug (should never
 // change), human-readable module name, and any number of tags
 // (found in `include/tags.hpp`) separated by commas.
-Model *modelMyModule = Model::create<MyModule, MyModuleWidget>("Template", "MyModule", "My Module", OSCILLATOR_TAG);
+Model *modelGVerbModule = Model::create<GVerbModule, GVerbModuleWidget>("rcm", "rcm-gverb", "GVerb", REVERB_TAG);

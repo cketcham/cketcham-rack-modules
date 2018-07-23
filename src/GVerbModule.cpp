@@ -45,7 +45,8 @@ struct GVerbModule : Module {
 		NUM_PARAMS
 	};
 	enum InputIds {
-		AUDIO_INPUT,
+		LEFT_AUDIO,
+		RIGHT_AUDIO,
 		ROOM_SIZE_INPUT,
 		DAMPING_INPUT,
 		REV_TIME_INPUT,
@@ -67,12 +68,14 @@ struct GVerbModule : Module {
 		NUM_LIGHTS
 	};
 
-	ty_gverb* gverb = NULL;
+	ty_gverb* gverbL = NULL;
+	ty_gverb* gverbR = NULL;
 
 	GVerbModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 	}
 	void step() override;
-	void disposeGverb();
+	void disposeGverbL();
+	void disposeGverbR();
 
 	float p_frequency = 0.f;
 	float p_room_size = 0.f;
@@ -94,10 +97,17 @@ struct GVerbModule : Module {
 	// - onReset, onRandomize, onCreate, onDelete: implements special behavior when user clicks these from the context menu
 };
 
-void GVerbModule::disposeGverb() {
-	if (gverb != NULL) {
-		gverb_free(gverb);
-		gverb = NULL;
+void GVerbModule::disposeGverbL() {
+	if (gverbL != NULL) {
+		gverb_free(gverbL);
+		gverbL = NULL;
+	}
+}
+
+void GVerbModule::disposeGverbR() {
+	if (gverbR != NULL) {
+		gverb_free(gverbR);
+		gverbR = NULL;
 	}
 }
 
@@ -107,7 +117,12 @@ float GVerbModule::getParam(ParamIds param, InputIds mod, ParamIds trim, float m
 
 void GVerbModule::handleParam(float value, float* store, void (*change)(ty_gverb*,float)) {
 	if (*store != value) {
-		change(gverb, value);
+		if (gverbL != NULL) {
+			change(gverbL, value);
+		}
+		if (gverbR != NULL) {
+			change(gverbR, value);
+		}
 		*store = value;
 	}
 }
@@ -116,18 +131,26 @@ void GVerbModule::step() {
 	auto reset = max(params[RESET_PARAM].value, inputs[RESET_INPUT].value);
 	auto mix = getParam(MIX_PARAM, MIX_INPUT, MIX_POT_PARAM, 0.f, 1.f);
 
-	if (p_frequency != engineGetSampleRate()) { disposeGverb(); }
-	if (params[MIX_PARAM].value == 0.f) { disposeGverb(); }
+	if (p_frequency != engineGetSampleRate()) { disposeGverbL(); disposeGverbR(); }
 	if (p_reset == 0.f && reset > 0.f) {
-		disposeGverb();
+		disposeGverbL();
+		disposeGverbR();
+	}
+
+	if (gverbL != NULL && !inputs[LEFT_AUDIO].active) {
+		disposeGverbL();
+	}
+
+	if (gverbR != NULL && !inputs[RIGHT_AUDIO].active) {
+		disposeGverbR();
 	}
 
 	p_reset = reset;
 
-	if (gverb == NULL) {
+	if (gverbL == NULL) {
 
-		if (mix > 0.f) {
-			gverb = gverb_new(
+		if (inputs[LEFT_AUDIO].active) {
+			gverbL = gverb_new(
 				engineGetSampleRate(), // freq
 				300,    // max room size
 				params[ROOM_SIZE_PARAM].value,    // room size
@@ -140,42 +163,72 @@ void GVerbModule::step() {
 			);
 
 			p_frequency = engineGetSampleRate();
-			p_room_size = getParam(ROOM_SIZE_PARAM, ROOM_SIZE_INPUT, ROOM_SIZE_POT_PARAM, 2.f, 300.f);
-			p_rev_time = getParam(REV_TIME_PARAM, REV_TIME_INPUT, REV_TIME_POT_PARAM, 0.f, 10000.f);
-			p_damping = getParam(DAMPING_PARAM, DAMPING_INPUT, DAMPING_POT_PARAM, 0.f, 1.f);
-			p_bandwidth = getParam(BANDWIDTH_PARAM, BANDWIDTH_INPUT, BANDWIDTH_POT_PARAM, 0.f, 1.f);
-			p_early_level = getParam(EARLY_LEVEL_PARAM, EARLY_LEVEL_INPUT, EARLY_LEVEL_POT_PARAM, 0.f, 1.f);
-			p_tail_level = getParam(TAIL_LEVEL_PARAM, TAIL_LEVEL_INPUT, TAIL_LEVEL_POT_PARAM, 0.f, 1.f);
 		}
-	} else {
+	}
+
+	if (gverbR == NULL) {
+
+		if (inputs[RIGHT_AUDIO].active) {
+			gverbR = gverb_new(
+				engineGetSampleRate(), // freq
+				300,    // max room size
+				params[ROOM_SIZE_PARAM].value,    // room size
+				params[REV_TIME_PARAM].value,     // revtime
+				params[DAMPING_PARAM].value,   // damping
+				90.0,   // spread
+				params[BANDWIDTH_PARAM].value,     // input bandwidth
+				params[EARLY_LEVEL_PARAM].value,   // early level
+				params[TAIL_LEVEL_PARAM].value    // tail level
+			);
+
+			p_frequency = engineGetSampleRate();
+		}
+	}
+
+
+	if (gverbL != NULL || gverbR != NULL) {
 		handleParam(getParam(ROOM_SIZE_PARAM, ROOM_SIZE_INPUT, ROOM_SIZE_POT_PARAM, 2.f, 300.f), &p_room_size, gverb_set_roomsize);
 		handleParam(getParam(REV_TIME_PARAM, REV_TIME_INPUT, REV_TIME_POT_PARAM, 0.f, 10000.f), &p_rev_time, gverb_set_revtime);
 		handleParam(getParam(DAMPING_PARAM, DAMPING_INPUT, DAMPING_POT_PARAM, 0.f, 1.f), &p_damping, gverb_set_damping);
 		handleParam(getParam(BANDWIDTH_PARAM, BANDWIDTH_INPUT, BANDWIDTH_POT_PARAM, 0.f, 1.f), &p_bandwidth, gverb_set_inputbandwidth);
 		handleParam(getParam(EARLY_LEVEL_PARAM, EARLY_LEVEL_INPUT, EARLY_LEVEL_POT_PARAM, 0.f, 1.f), &p_early_level, gverb_set_earlylevel);
 		handleParam(getParam(TAIL_LEVEL_PARAM, TAIL_LEVEL_INPUT, TAIL_LEVEL_POT_PARAM, 0.f, 1.f), &p_tail_level, gverb_set_taillevel);
-	}
 
-
-	if (gverb != NULL) {
-		gverb_do(gverb, inputs[AUDIO_INPUT].value, &outputs[LEFT_OUTPUT].value, &outputs[RIGHT_OUTPUT].value);
-
-		isfinite(outputs[LEFT_OUTPUT].value) ? outputs[LEFT_OUTPUT].value : 0.f;
-		isfinite(outputs[RIGHT_OUTPUT].value) ? outputs[RIGHT_OUTPUT].value : 0.f;
-
+		auto engineCount = gverbL != NULL && gverbR != NULL ? 2 : 1;
 		auto spread = getParam(SPREAD_PARAM, SPREAD_INPUT, SPREAD_POT_PARAM, 0.f, 1.f);
-		auto spreadleft = (outputs[LEFT_OUTPUT].value + ((1-spread) * outputs[RIGHT_OUTPUT].value)) / 2;
-		auto spreadright = (outputs[RIGHT_OUTPUT].value + ((1-spread) * outputs[LEFT_OUTPUT].value)) / 2;
-		outputs[LEFT_OUTPUT].value = spreadleft;
-		outputs[RIGHT_OUTPUT].value = spreadright;
+		auto L_L = 0.f, L_R = 0.f;
+		auto R_L = 0.f, R_R = 0.f;
+
+		if (gverbL != NULL) {
+			gverb_do(gverbL, inputs[LEFT_AUDIO].value, &L_L, &L_R);
+
+			L_L = isfinite(L_L) ? L_L : 0.f;
+			L_R = isfinite(L_R) ? L_R : 0.f;
+		}
+
+		auto L_L_S = (L_L + ((1-spread) * L_R)) / (2-spread);
+		auto L_R_S = (L_R + ((1-spread) * L_L)) / (2-spread);
+
+		if (gverbR != NULL) {
+			gverb_do(gverbR, inputs[RIGHT_AUDIO].value, &R_L, &R_R);
+
+			R_L = isfinite(R_L) ? R_L : 0.f;
+			R_R = isfinite(R_R) ? R_R : 0.f;
+		}
+
+		auto R_L_S = (R_L + ((1-spread) * R_R)) / (2-spread);
+		auto R_R_S = (R_R + ((1-spread) * R_L)) / (2-spread);
+
+		outputs[LEFT_OUTPUT].value = L_L_S + R_L_S / engineCount;
+		outputs[RIGHT_OUTPUT].value = L_R_S + R_R_S / engineCount;
 
 		follower.step(&outputs[LEFT_OUTPUT].value, &outputs[RIGHT_OUTPUT].value);
 
-		outputs[RIGHT_OUTPUT].value = ((1 - mix) * inputs[AUDIO_INPUT].value) + (mix * outputs[RIGHT_OUTPUT].value);
-		outputs[LEFT_OUTPUT].value = ((1 - mix) * inputs[AUDIO_INPUT].value) + (mix * outputs[LEFT_OUTPUT].value);
+		outputs[LEFT_OUTPUT].value = ((1 - mix) * inputs[LEFT_AUDIO].value) + (mix * outputs[LEFT_OUTPUT].value);
+		outputs[RIGHT_OUTPUT].value = ((1 - mix) * inputs[RIGHT_AUDIO].value) + (mix * outputs[RIGHT_OUTPUT].value);
 
 	} else {
-		outputs[LEFT_OUTPUT].value = outputs[RIGHT_OUTPUT].value = inputs[AUDIO_INPUT].value;
+		outputs[LEFT_OUTPUT].value = outputs[RIGHT_OUTPUT].value = 0.f;
 	}
 }
 
@@ -214,7 +267,8 @@ struct GVerbModuleWidget : ModuleWidget {
 		addInput(Port::create<PJ301MPort>(Vec(204, 286), Port::INPUT, module, GVerbModule::SPREAD_INPUT));
 		addInput(Port::create<PJ301MPort>(Vec(232, 286), Port::INPUT, module, GVerbModule::RESET_INPUT));
 
-		addInput(Port::create<PJ301MPort>(Vec(14, 332), Port::INPUT, module, GVerbModule::AUDIO_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(14, 332), Port::INPUT, module, GVerbModule::LEFT_AUDIO));
+		addInput(Port::create<PJ301MPort>(Vec(41, 332), Port::INPUT, module, GVerbModule::RIGHT_AUDIO));
 
 		addOutput(Port::create<PJ301MPort>(Vec(204, 332), Port::OUTPUT, module, GVerbModule::LEFT_OUTPUT));
 		addOutput(Port::create<PJ301MPort>(Vec(232, 332), Port::OUTPUT, module, GVerbModule::RIGHT_OUTPUT));

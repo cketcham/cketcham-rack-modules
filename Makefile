@@ -7,16 +7,16 @@ SLUG = rcm
 
 # Must follow the format in the Versioning section of
 # https://vcvrack.com/manual/PluginDevelopmentTutorial.html
-VERSION = 0.6.1
+VERSION = 0.6.2
 
 # FLAGS will be passed to both the C and C++ compiler
-FLAGS +=
+#FLAGS += -Idep/openmpt-libopenmpt-0.3.10/soundlib -Idep/openmpt-libopenmpt-0.3.10/common
 CFLAGS +=
 CXXFLAGS +=
 
 # Careful about linking to shared libraries, since you can't assume much about the user's environment and library search path.
 # Static libraries are fine.
-LDFLAGS +=
+#LDFLAGS = -Ldep -Ldep/openmpt-libopenmpt-0.3.10/bin/libopenmpt.a
 
 # Add .cpp and .c files to the build
 SOURCES += $(wildcard src/*.cpp) $(wildcard src/*.c)
@@ -27,3 +27,7 @@ DISTRIBUTABLES += $(wildcard LICENSE*) res
 
 # Include the VCV Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
+
+dep:
+	$(MAKE) -C dep
+

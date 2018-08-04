@@ -224,8 +224,8 @@ void GVerbModule::step() {
 
 		follower.step(&outputs[LEFT_OUTPUT].value, &outputs[RIGHT_OUTPUT].value);
 
-		outputs[LEFT_OUTPUT].value = ((1 - mix) * inputs[LEFT_AUDIO].value) + (mix * outputs[LEFT_OUTPUT].value);
-		outputs[RIGHT_OUTPUT].value = ((1 - mix) * inputs[RIGHT_AUDIO].value) + (mix * outputs[RIGHT_OUTPUT].value);
+		outputs[LEFT_OUTPUT].value = ((1 - mix) * (inputs[LEFT_AUDIO].active ? inputs[LEFT_AUDIO].value : inputs[RIGHT_AUDIO].value)) + (mix * outputs[LEFT_OUTPUT].value);
+		outputs[RIGHT_OUTPUT].value = ((1 - mix) * (inputs[RIGHT_AUDIO].active ? inputs[RIGHT_AUDIO].value : inputs[LEFT_AUDIO].value)) + (mix * outputs[RIGHT_OUTPUT].value);
 
 	} else {
 		outputs[LEFT_OUTPUT].value = outputs[RIGHT_OUTPUT].value = 0.f;
@@ -236,7 +236,7 @@ struct GVerbModuleWidget : ModuleWidget {
 	GVerbModuleWidget(GVerbModule *module) : ModuleWidget(module) {
 		setPanel(SVG::load(assetPlugin(plugin, "res/Reverb.svg")));
 
-		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 44), module, GVerbModule::ROOM_SIZE_PARAM, 2.0, 300.0, 2.0));
+		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 44), module, GVerbModule::ROOM_SIZE_PARAM, 0.0, 300.0, 150.0));
 		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 115), module, GVerbModule::DAMPING_PARAM, 0.0, 1.0, 0.95));
 
 		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(127, 60), module, GVerbModule::REV_TIME_PARAM, 0.0, 10000.0, 5000.0));

@@ -200,20 +200,20 @@ void GVerbModule::step() {
 		auto R_L = 0.f, R_R = 0.f;
 
 		if (gverbL != NULL) {
-			gverb_do(gverbL, inputs[LEFT_AUDIO].value, &L_L, &L_R);
+			gverb_do(gverbL, inputs[LEFT_AUDIO].value / 10.f, &L_L, &L_R);
 
-			L_L = isfinite(L_L) ? L_L : 0.f;
-			L_R = isfinite(L_R) ? L_R : 0.f;
+			L_L = isfinite(L_L) ? L_L * 10.f : 0.f;
+			L_R = isfinite(L_R) ? L_R * 10.f : 0.f;
 		}
 
 		auto L_L_S = (L_L + ((1-spread) * L_R)) / (2-spread);
 		auto L_R_S = (L_R + ((1-spread) * L_L)) / (2-spread);
 
 		if (gverbR != NULL) {
-			gverb_do(gverbR, inputs[RIGHT_AUDIO].value, &R_L, &R_R);
+			gverb_do(gverbR, inputs[RIGHT_AUDIO].value / 10.f, &R_L, &R_R);
 
-			R_L = isfinite(R_L) ? R_L : 0.f;
-			R_R = isfinite(R_R) ? R_R : 0.f;
+			R_L = isfinite(R_L) ? R_L * 10.f : 0.f;
+			R_R = isfinite(R_R) ? R_R * 10.f : 0.f;
 		}
 
 		auto R_L_S = (R_L + ((1-spread) * R_R)) / (2-spread);

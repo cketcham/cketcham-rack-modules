@@ -1,8 +1,18 @@
 #include "GVerbWidget.hpp"
 
+#include <sys/stat.h>
+
+#if ARCH_WIN
+	#include <windows.h>
+	#include <direct.h>
+	#define mkdir(_dir, _perms) _mkdir(_dir)
+#else
+	#include <dlfcn.h>
+#endif
+
+using namespace std;
 
 Plugin *plugin;
-
 
 void init(Plugin *p) {
 	plugin = p;
@@ -11,7 +21,8 @@ void init(Plugin *p) {
 
 	// Add all Models defined throughout the plugin
 	p->addModel(modelGVerbModule);
-	p->addModel(modelDuckModule);
+	p->addModel(modelLoadCounterModule);
+	p->addModel(modelAudioInterface16);
 	p->addModel(modelCV0to10Module);
 	p->addModel(modelCVS0to10Module);
 	p->addModel(modelCV5to5Module);

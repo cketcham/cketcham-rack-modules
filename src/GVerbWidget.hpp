@@ -14,3 +14,4 @@ extern Model *modelCVS0to10Module;
 extern Model *modelCV5to5Module;
 extern Model *modelCVMmtModule;
 extern Model *modelCVTglModule;
+extern Model *modelAudioInterface16;

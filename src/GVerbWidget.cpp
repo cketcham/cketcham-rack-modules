@@ -21,7 +21,6 @@ void init(Plugin *p) {
 
 	// Add all Models defined throughout the plugin
 	p->addModel(modelGVerbModule);
-	p->addModel(modelLoadCounterModule);
 	p->addModel(modelAudioInterface16);
 	p->addModel(modelCV0to10Module);
 	p->addModel(modelCVS0to10Module);

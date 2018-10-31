@@ -15,16 +15,7 @@ The Spread feature cannot be modified without recreating the engine, so it's fix
 
 The output is normalised using an internal envelope following, because the output gets crazy high voltages otherwise. This follower can generate its own effects at times when things are out of hand.
 
-## Duck
+## Audio 16
 
-A basic audio ducking module.
-
-Takes 2 stereo inputs:
-
-* over input is the audio that gets overlaid.
-* under input is the base audio stream that gets ducked.
-
-There is a single stereo output that contains the result of the ducking operation.
-
-The tunables aren't CV'd since they don't seem to be generic - once you get your sound they tend to stay fixed. I may change this, but it would result in a wider module to accomadate the patching bay.
+Steve Baker's version of the Audio module that supports audio devices with up to 16 inputs and outputs.
 

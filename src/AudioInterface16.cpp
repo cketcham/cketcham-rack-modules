@@ -243,13 +243,17 @@ void AudioInterface16::step() {
 
 
 struct AudioInterfaceWidget16 : ModuleWidget {
-	AudioInterfaceWidget16(AudioInterface16 *module) : ModuleWidget(module) {
-		setPanel(SVG::load(assetPlugin(plugin, "res/AudioInterface16.svg")));
+	SVGWidget* backgroundPanel;
+	std::shared_ptr<SVG> background_SB;
+	std::shared_ptr<SVG> background_Plastic;
 
-		// addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		// addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		// addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		// addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+	AudioInterfaceWidget16(AudioInterface16 *module) : ModuleWidget(module) {
+		setPanel(SVG::load(assetPlugin(plugin, "res/AudioInterface16_SB.svg")));
+
+		addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addInput(Port::create<PJ301MPort>(mm2px(Vec(3.7069211, 55.530807)), Port::INPUT, module, AudioInterface16::AUDIO_INPUT + 0));
 		addInput(Port::create<PJ301MPort>(mm2px(Vec(15.307249, 55.530807)), Port::INPUT, module, AudioInterface16::AUDIO_INPUT + 1));
@@ -303,11 +307,13 @@ struct AudioInterfaceWidget16 : ModuleWidget {
 		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(58.926309, 107.17003)), module, AudioInterface16::OUTPUT_LIGHT + 6));
 		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(82.126971, 107.17003)), module, AudioInterface16::OUTPUT_LIGHT + 7));
 
-		AudioWidget *audioWidget = Widget::create<AudioWidget>(mm2px(Vec(3.2122073, 10.837339)));
+		AudioWidget* audioWidget = Widget::create<AudioWidget>(mm2px(Vec(3.2122073, 14.837339)));
 		audioWidget->box.size = mm2px(Vec(90.5, 28));
 		audioWidget->audioIO = &module->audioIO;
 		addChild(audioWidget);
 	}
+
+
 };
 
 

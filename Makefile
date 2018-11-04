@@ -7,7 +7,7 @@ SLUG = rcm
 
 # Must follow the format in the Versioning section of
 # https://vcvrack.com/manual/PluginDevelopmentTutorial.html
-VERSION = 0.6.4
+VERSION = 0.6.5
 
 # FLAGS will be passed to both the C and C++ compiler
 #FLAGS += -Idep/openmpt-libopenmpt-0.3.10/soundlib -Idep/openmpt-libopenmpt-0.3.10/common
@@ -17,7 +17,7 @@ CXXFLAGS +=
 # Careful about linking to shared libraries, since you can't assume much about the user's environment and library search path.
 # Static libraries are fine.
 #LDFLAGS = -Ldep -Ldep/openmpt-libopenmpt-0.3.10/bin/libopenmpt.a
-LDFLAGS = -Ldep 
+#LDFLAGS = -Ldep 
 
 # Add .cpp and .c files to the build
 SOURCES += $(wildcard src/*.cpp) $(wildcard src/*.c)

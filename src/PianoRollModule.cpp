@@ -498,6 +498,16 @@ struct PianoRollWidget : ModuleWidget {
 		return keysArea;
 	}
 
+	std::tuple<bool, bool> findOctaveSwitch(Vec pos) {
+		Rect roll = getRollArea();
+		Rect keysArea = reserveKeysArea(roll);
+
+		bool octaveUp = Rect(Vec(keysArea.pos.x, roll.pos.y), Vec(keysArea.size.x, keysArea.pos.y)).contains(pos);
+		bool octaveDown = Rect(Vec(keysArea.pos.x, keysArea.pos.y + keysArea.size.y), Vec(keysArea.size.x, keysArea.pos.y)).contains(pos);
+		
+		return std::make_tuple(octaveUp, octaveDown);
+	}
+
 	std::tuple<bool, BeatDiv, Key> findCell(Vec pos) {
 		Rect roll = getRollArea();
 		Rect keysArea = reserveKeysArea(roll);
@@ -629,11 +639,30 @@ struct PianoRollWidget : ModuleWidget {
 		int highPitch = keys.back().num + (keys.back().oct * 12);
 		if ((int)measures.size() <= currentMeasure) { return; }
 
+		Rect roll = getRollArea();
+		Rect keysArea = reserveKeysArea(roll);
+
 		for (const auto &beatDiv : beatDivs) {
 			if ((int)measures[currentMeasure].notes.size() <= beatDiv.num) { break; }
-			if (   measures[currentMeasure].notes[beatDiv.num].active == false
-					|| measures[currentMeasure].notes[beatDiv.num].pitch < lowPitch
-					|| measures[currentMeasure].notes[beatDiv.num].pitch > highPitch) { 
+			if (measures[currentMeasure].notes[beatDiv.num].active == false ) { continue; }
+			if (measures[currentMeasure].notes[beatDiv.num].pitch < lowPitch) {
+				nvgBeginPath(ctx);
+				nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
+				nvgStrokeWidth(ctx, 1.f);
+				nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
+				nvgRect(ctx, beatDiv.pos.x, roll.pos.y + roll.size.y - topMargins, beatDiv.size.x, 1);
+				nvgStroke(ctx);
+				nvgFill(ctx);
+				continue;
+			}
+			if (measures[currentMeasure].notes[beatDiv.num].pitch > highPitch) {
+				nvgBeginPath(ctx);
+				nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
+				nvgStrokeWidth(ctx, 1.f);
+				nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
+				nvgRect(ctx, beatDiv.pos.x, roll.pos.y + topMargins -1, beatDiv.size.x, 1);
+				nvgStroke(ctx);
+				nvgFill(ctx);
 				continue;
 			}
 
@@ -694,6 +723,9 @@ struct PianoRollWidget : ModuleWidget {
 	}
 
 	void onMouseDown(EventMouseDown& e) override {
+		Vec pos = gRackWidget->lastMousePos.minus(box.pos);
+		std::tuple<bool, bool> octaveSwitch = findOctaveSwitch(pos);
+		
 		if (e.button == 1) {
 			std::tuple<bool, BeatDiv, Key> cell = findCell(e.pos);
 			if (!std::get<0>(cell)) { ModuleWidget::onMouseDown(e); return; }
@@ -704,6 +736,10 @@ struct PianoRollWidget : ModuleWidget {
 			int beatDiv = std::get<1>(cell).num;
 			int pitch = std::get<2>(cell).pitch();
 			module->toggleCellRetrigger(currentMeasure, beatDiv, pitch);
+		} else if (e.button == 0 && std::get<0>(octaveSwitch)) {
+			this->currentOctave = clamp(currentOctave + 1, -1, 8);
+		} else if (e.button == 0 && std::get<1>(octaveSwitch)) {
+			this->currentOctave = clamp(currentOctave - 1, -1, 8);
 		} else {
 			ModuleWidget::onMouseDown(e);
 		}

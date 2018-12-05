@@ -3,6 +3,8 @@
 
 using namespace rack;
 
+// notes by abdul karim from the Noun Project
+
 // Forward-declare the Plugin, defined in Template.cpp
 extern Plugin *plugin;
 
@@ -15,3 +17,4 @@ extern Model *modelCV5to5Module;
 extern Model *modelCVMmtModule;
 extern Model *modelCVTglModule;
 extern Model *modelAudioInterface16;
+extern Model *modelPianoRollModule;

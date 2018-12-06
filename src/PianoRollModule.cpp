@@ -1,5 +1,6 @@
 #include "GVerbWidget.hpp"
 #include "window.hpp"
+#include "dsp/digital.hpp"
 #include <tuple>
 
 static const float VELOCITY_SENSITIVITY = 0.0015f;
@@ -136,6 +137,9 @@ struct PianoRollModule : Module {
 	int patterns = 64;
 	int currentPattern = 0;
 	std::vector<Pattern> patternData;
+	SchmittTrigger clockIn;
+	int currentStep = -1;
+	PulseGenerator retriggerOut;
 
 	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 		patternData.resize(1);
@@ -209,6 +213,7 @@ struct PianoRollModule : Module {
 
 		if (!patternData[currentPattern].measures[measure].notes[note].active) {
 			patternData[currentPattern].measures[measure].notes[note].active = true;
+			patternData[currentPattern].measures[measure].notes[note].velocity = 0.75f;
 		} else if (patternData[currentPattern].measures[measure].notes[note].pitch == pitch) {
 			patternData[currentPattern].measures[measure].notes[note].active = false;
 			patternData[currentPattern].measures[measure].notes[note].retrigger = false;
@@ -241,9 +246,37 @@ struct PianoRollModule : Module {
 		adjustVelocity(measure, note, 0.f);
 	}
 
+	int getDivisionsPerMeasure() const {
+		return patternData[currentPattern].beatsPerMeasure * patternData[currentPattern].divisionsPerBeat * (patternData[currentPattern].triplets ? 1.5 : 1);
+	}
 };
 
 void PianoRollModule::step() {
+	if (clockIn.process(inputs[CLOCK_INPUT].value)) {
+		currentStep = (currentStep + 1) % (getDivisionsPerMeasure() * patternData[currentPattern].numberOfMeasures);
+		int measure = currentStep / getDivisionsPerMeasure();
+		int noteInMeasure = currentStep % getDivisionsPerMeasure();
+
+		if ((int)patternData[currentPattern].measures.size() > measure 
+				&& (int)patternData[currentPattern].measures[measure].notes.size() > noteInMeasure
+				&& patternData[currentPattern].measures[measure].notes[noteInMeasure].active) {
+
+			if (outputs[GATE_OUTPUT].value == 0.f || patternData[currentPattern].measures[measure].notes[noteInMeasure].retrigger) {
+				retriggerOut.trigger(0.1f);
+			}
+
+
+			outputs[GATE_OUTPUT].value = 10.f;
+			outputs[VELOCITY_OUTPUT].value = patternData[currentPattern].measures[measure].notes[noteInMeasure].velocity * 10.f;
+			float octave = patternData[currentPattern].measures[measure].notes[noteInMeasure].pitch / 12;
+			float semitone = patternData[currentPattern].measures[measure].notes[noteInMeasure].pitch % 12;
+			outputs[VOCT_OUTPUT].value = (octave-4.f) + ((1.f/12.f) * semitone);
+		} else {
+			outputs[GATE_OUTPUT].value = 0.f;
+		}
+	}
+
+	 outputs[RETRIGGER_OUTPUT].value = retriggerOut.process(engineGetSampleTime()) ? 10.f : 0.f;
 }
 
 
@@ -447,8 +480,8 @@ struct PianoRollWidget : ModuleWidget {
 					Vec(keysArea.pos.x, (keysArea.pos.y + keysArea.size.y) - ( (1 + i) * keyHeight) ),
 					Vec(keysArea.size.x, keyHeight ),
 					n == 1 || n == 3 || n == 6 || n == 8 || n == 10,
-					(i + 3) % 12,
-					currentOctave + ((i+3) / 12)
+					i % 12,
+					currentOctave + (i / 12)
 				)
 			);
 		}
@@ -459,7 +492,7 @@ struct PianoRollWidget : ModuleWidget {
 	std::vector<BeatDiv> getBeatDivs(const Rect &roll, int beatsPerMeasure, int divisionsPerBeat, bool triplets) {
 		std::vector<BeatDiv> beatDivs;
 
-		int totalDivisions = beatsPerMeasure * divisionsPerBeat * (triplets ? 1.5 : 1);
+		int totalDivisions = module->getDivisionsPerMeasure();
 		divisionsPerBeat *= (triplets ? 1.5 : 1);
 
 		float divisionWidth = roll.size.x / totalDivisions;

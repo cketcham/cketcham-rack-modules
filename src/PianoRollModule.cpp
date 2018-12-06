@@ -15,6 +15,13 @@ struct Note {
 	bool active;
 
 	Note() : pitch(0), velocity(1.f), retrigger(false), active(false) {}
+	Note& operator=(const Note& other) {
+		pitch = other.pitch;
+		velocity = other.velocity;
+		retrigger = other.retrigger;
+		active = other.active;
+		return *this;
+	}
 };
 
 struct Measure {
@@ -138,6 +145,7 @@ struct PianoRollModule : Module {
 	int currentPattern = 0;
 	std::vector<Pattern> patternData;
 	SchmittTrigger clockIn;
+	SchmittTrigger resetIn;
 	int currentStep = -1;
 	PulseGenerator retriggerOut;
 
@@ -149,12 +157,47 @@ struct PianoRollModule : Module {
 	void setBeatsPerMeasure(int value) {
 		patternData[currentPattern].beatsPerMeasure = value;
 	}
+
+	void reassignNotes(int fromDivisions, int toDivisions) {
+		float scale = (float)toDivisions / (float)fromDivisions;
+		for (auto& measure: patternData[currentPattern].measures) {
+
+			std::vector<Note> scratch;
+			scratch.resize(toDivisions);
+
+			for (int i = 0; i < fromDivisions; i++) {
+				int newPos = floor(i * scale);
+				if ((int)measure.notes.size() <= i) { 
+					continue;
+				}
+				if (measure.notes[i].active) {
+					scratch[newPos] = measure.notes[i];
+				}
+			}
+
+			measure.notes.resize(toDivisions);
+			for (int i = 0; i < toDivisions; i++) {
+				measure.notes[i] = scratch[i];
+			}
+		}
+	}
+
 	void setDivisionsPerBeat(int value) {
+		int oldBPM = getDivisionsPerMeasure();
 		patternData[currentPattern].divisionsPerBeat = value;
+		int newBPM = getDivisionsPerMeasure();
+
+		reassignNotes(oldBPM, newBPM);
 	}
+
 	void setTriplets(bool value) {
+		int oldBPM = getDivisionsPerMeasure();
 		patternData[currentPattern].triplets = value;
+		int newBPM = getDivisionsPerMeasure();
+
+		reassignNotes(oldBPM, newBPM);
 	}
+
 	void setMeasures(int value) {
 		patternData[currentPattern].numberOfMeasures = value;
 	}
@@ -252,6 +295,11 @@ struct PianoRollModule : Module {
 };
 
 void PianoRollModule::step() {
+	if (resetIn.process(inputs[RESET_INPUT].value)) {
+		currentStep = -1;
+		outputs[GATE_OUTPUT].value = 0.f;
+	}
+
 	if (clockIn.process(inputs[CLOCK_INPUT].value)) {
 		currentStep = (currentStep + 1) % (getDivisionsPerMeasure() * patternData[currentPattern].numberOfMeasures);
 		int measure = currentStep / getDivisionsPerMeasure();
@@ -262,9 +310,8 @@ void PianoRollModule::step() {
 				&& patternData[currentPattern].measures[measure].notes[noteInMeasure].active) {
 
 			if (outputs[GATE_OUTPUT].value == 0.f || patternData[currentPattern].measures[measure].notes[noteInMeasure].retrigger) {
-				retriggerOut.trigger(0.1f);
+				retriggerOut.trigger(1e-3f);
 			}
-
 
 			outputs[GATE_OUTPUT].value = 10.f;
 			outputs[VELOCITY_OUTPUT].value = patternData[currentPattern].measures[measure].notes[noteInMeasure].velocity * 10.f;
@@ -276,7 +323,7 @@ void PianoRollModule::step() {
 		}
 	}
 
-	 outputs[RETRIGGER_OUTPUT].value = retriggerOut.process(engineGetSampleTime()) ? 10.f : 0.f;
+	outputs[RETRIGGER_OUTPUT].value = retriggerOut.process(engineGetSampleTime()) ? 10.f : 0.f;
 }
 
 
@@ -690,7 +737,7 @@ struct PianoRollWidget : ModuleWidget {
 		if ((int)measures.size() <= currentMeasure) { return; }
 
 		Rect roll = getRollArea();
-		Rect keysArea = reserveKeysArea(roll);
+		reserveKeysArea(roll);
 
 		for (const auto &beatDiv : beatDivs) {
 			if ((int)measures[currentMeasure].notes.size() <= beatDiv.num) { break; }
@@ -758,7 +805,7 @@ struct PianoRollWidget : ModuleWidget {
 
 	void drawMeasures(NVGcontext *ctx, int numberOfMeasures, int currentMeasure) {
 		Rect roll = getRollArea();
-		Rect keysArea = reserveKeysArea(roll);
+		reserveKeysArea(roll);
 
 		float widthPerMeasure = roll.size.x / numberOfMeasures;
 		float boxHeight = topMargins * 0.75;
@@ -769,6 +816,40 @@ struct PianoRollWidget : ModuleWidget {
 			nvgStrokeWidth(ctx, 1.f);
 			nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, i == currentMeasure ? 1.f : 0.25f));
 			nvgRect(ctx, roll.pos.x + i * widthPerMeasure, roll.pos.y + roll.size.y - boxHeight, widthPerMeasure, boxHeight);
+			nvgStroke(ctx);
+			nvgFill(ctx);
+		}
+	}
+
+	void drawPlayPosition(NVGcontext *ctx, int currentStep, int numberOfMeasures, int divisionsPerBeat, int currentMeasure) {
+		Rect roll = getRollArea();
+		reserveKeysArea(roll);
+
+		if (currentStep >= 0) {
+			int divisionsPerMeasure = module->getDivisionsPerMeasure();
+			int playingMeasure = currentStep / divisionsPerMeasure;
+			int noteInMeasure = currentStep % divisionsPerMeasure;
+
+
+			if (playingMeasure == currentMeasure) {
+
+				float divisionWidth = roll.size.x / divisionsPerMeasure;
+				nvgBeginPath(ctx);
+				nvgStrokeColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 0.5f));
+				nvgStrokeWidth(ctx, 0.5f);
+				nvgFillColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 0.2f));
+				nvgRect(ctx, roll.pos.x + (noteInMeasure * divisionWidth), roll.pos.y, divisionWidth, roll.size.y - topMargins);
+				nvgStroke(ctx);
+				nvgFill(ctx);
+			}
+
+			float widthPerMeasure = roll.size.x / numberOfMeasures;
+			float stepWidthInMeasure = widthPerMeasure / divisionsPerMeasure;	
+			nvgBeginPath(ctx);
+			nvgStrokeColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 1.f));
+			nvgStrokeWidth(ctx, 1.f);
+			nvgFillColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 0.2f));
+			nvgRect(ctx, roll.pos.x + (playingMeasure * widthPerMeasure) + (noteInMeasure * stepWidthInMeasure), roll.pos.y + roll.size.y - topMargins, stepWidthInMeasure, topMargins);
 			nvgStroke(ctx);
 			nvgFill(ctx);
 		}
@@ -790,7 +871,8 @@ struct PianoRollWidget : ModuleWidget {
 		drawBeats(ctx, beatDivs);
 		drawNotes(ctx, keys, beatDivs, module->patternData[module->currentPattern].measures);
 		drawMeasures(ctx, module->patternData[module->currentPattern].numberOfMeasures, this->currentMeasure);
-	}
+		drawPlayPosition(ctx, module->currentStep, module->patternData[module->currentPattern].numberOfMeasures, module->patternData[module->currentPattern].divisionsPerBeat, this->currentMeasure);
+	}	
 
 	void onMouseDown(EventMouseDown& e) override {
 		Vec pos = gRackWidget->lastMousePos.minus(box.pos);

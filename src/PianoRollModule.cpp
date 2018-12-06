@@ -150,7 +150,7 @@ struct PianoRollModule : Module {
 	PulseGenerator retriggerOut;
 
 	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
-		patternData.resize(1);
+		patternData.resize(64);
 	}
 
 	void step() override;
@@ -456,6 +456,10 @@ void PianoRollModule::step() {
 	if (resetIn.process(inputs[RESET_INPUT].value)) {
 		currentStep = -1;
 		outputs[GATE_OUTPUT].value = 0.f;
+	}
+
+	if (inputs[PATTERN_INPUT].active) {
+		currentPattern = floor(rescale(clamp(inputs[PATTERN_INPUT].value, 0.f, 10.f), 0, 10, 0, 63));
 	}
 
 	if (clockIn.process(inputs[CLOCK_INPUT].value)) {

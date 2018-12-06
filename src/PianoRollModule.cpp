@@ -160,6 +160,7 @@ struct PianoRollModule : Module {
 
 	void reassignNotes(int fromDivisions, int toDivisions) {
 		float scale = (float)toDivisions / (float)fromDivisions;
+		int smear = rack::max(1, (int)floor(scale));
 		for (auto& measure: patternData[currentPattern].measures) {
 
 			std::vector<Note> scratch;
@@ -171,7 +172,20 @@ struct PianoRollModule : Module {
 					continue;
 				}
 				if (measure.notes[i].active) {
-					scratch[newPos] = measure.notes[i];
+					if ((int)measure.notes.size() > newPos) {
+						measure.notes[i].retrigger |= measure.notes[i].active && measure.notes[i].retrigger;
+					}
+
+					// Copy note to new location
+					// Keep it's gate length by smearing the note across multiple locations if necessary
+					for (int n = 0; n < smear; n++) {
+						scratch[newPos + n] = measure.notes[i];
+						
+						if (n > 0) {
+							// don't retrigger smeared notes
+							scratch[newPos + n].retrigger = false;
+						}
+					}
 				}
 			}
 

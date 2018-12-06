@@ -28,7 +28,7 @@ struct Pattern {
 	int divisionsPerBeat;
 	bool triplets;
 
-	Pattern() : title(""), numberOfMeasures(0), beatsPerMeasure(4), divisionsPerBeat(4), triplets(false) { }
+	Pattern() : title(""), numberOfMeasures(1), beatsPerMeasure(4), divisionsPerBeat(4), triplets(false) { }
 };
 
 struct Key {
@@ -498,6 +498,23 @@ struct PianoRollWidget : ModuleWidget {
 		return keysArea;
 	}
 
+	std::tuple<bool, int> findMeasure(Vec pos) {
+		Rect roll = getRollArea();
+		Rect keysArea = reserveKeysArea(roll);
+
+		float widthPerMeasure = roll.size.x / module->patternData[module->currentPattern].numberOfMeasures;
+		float boxHeight = topMargins * 0.75;
+
+		for (int i = 0; i < module->patternData[module->currentPattern].numberOfMeasures; i++) {
+			if (Rect(Vec(roll.pos.x + i * widthPerMeasure, roll.pos.y + roll.size.y - boxHeight), Vec(widthPerMeasure, boxHeight)).contains(pos)) {
+				return std::make_tuple(true, i);
+			}
+		}
+
+		return std::make_tuple(false, 0);
+	}
+
+
 	std::tuple<bool, bool> findOctaveSwitch(Vec pos) {
 		Rect roll = getRollArea();
 		Rect keysArea = reserveKeysArea(roll);
@@ -706,6 +723,25 @@ struct PianoRollWidget : ModuleWidget {
 		}
 	}
 
+	void drawMeasures(NVGcontext *ctx, int numberOfMeasures, int currentMeasure) {
+		Rect roll = getRollArea();
+		Rect keysArea = reserveKeysArea(roll);
+
+		float widthPerMeasure = roll.size.x / numberOfMeasures;
+		float boxHeight = topMargins * 0.75;
+
+		for (int i = 0; i < numberOfMeasures; i++) {
+			nvgBeginPath(ctx);
+			nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.f));
+			nvgStrokeWidth(ctx, 1.f);
+			nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, i == currentMeasure ? 1.f : 0.25f));
+			nvgRect(ctx, roll.pos.x + i * widthPerMeasure, roll.pos.y + roll.size.y - boxHeight, widthPerMeasure, boxHeight);
+			nvgStroke(ctx);
+			nvgFill(ctx);
+		}
+	}
+
+
 	// Event Handlers
 
 	void draw(NVGcontext* ctx) override {
@@ -720,11 +756,13 @@ struct PianoRollWidget : ModuleWidget {
 		auto beatDivs = getBeatDivs(roll, module->patternData[module->currentPattern].beatsPerMeasure, module->patternData[module->currentPattern].divisionsPerBeat, module->patternData[module->currentPattern].triplets);
 		drawBeats(ctx, beatDivs);
 		drawNotes(ctx, keys, beatDivs, module->patternData[module->currentPattern].measures);
+		drawMeasures(ctx, module->patternData[module->currentPattern].numberOfMeasures, this->currentMeasure);
 	}
 
 	void onMouseDown(EventMouseDown& e) override {
 		Vec pos = gRackWidget->lastMousePos.minus(box.pos);
 		std::tuple<bool, bool> octaveSwitch = findOctaveSwitch(pos);
+		std::tuple<bool, int> measureSwitch = findMeasure(pos);
 		
 		if (e.button == 1) {
 			std::tuple<bool, BeatDiv, Key> cell = findCell(e.pos);
@@ -740,6 +778,8 @@ struct PianoRollWidget : ModuleWidget {
 			this->currentOctave = clamp(currentOctave + 1, -1, 8);
 		} else if (e.button == 0 && std::get<1>(octaveSwitch)) {
 			this->currentOctave = clamp(currentOctave - 1, -1, 8);
+		} else if (e.button == 0 && std::get<0>(measureSwitch)) {
+			this->currentMeasure = std::get<1>(measureSwitch);
 		} else {
 			ModuleWidget::onMouseDown(e);
 		}

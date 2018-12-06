@@ -152,7 +152,152 @@ struct PianoRollModule : Module {
 	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 		patternData.resize(1);
 	}
+
 	void step() override;
+
+	json_t *toJson() override {
+		json_t *rootJ = Module::toJson();
+		if (rootJ == NULL) {
+				rootJ = json_object();
+		}
+
+		json_t *patternsJ = json_array();
+		for (const auto& pattern : patternData) {
+			json_t *patternJ = json_object();
+			json_object_set_new(patternJ, "title", json_string(pattern.title.c_str()));
+			json_object_set_new(patternJ, "numberOfMeasures", json_integer(pattern.numberOfMeasures));
+			json_object_set_new(patternJ, "beatsPerMeasure", json_integer(pattern.beatsPerMeasure));
+			json_object_set_new(patternJ, "divisionsPerBeat", json_integer(pattern.divisionsPerBeat));
+			json_object_set_new(patternJ, "triplets", json_boolean(pattern.triplets));
+
+			json_t *measuresJ = json_array();
+			for (const auto& measure : pattern.measures) {
+				// struct Measure {
+				// 	std::vector<Note> notes;
+				json_t *measureJ = json_object();
+				json_t *notesJ = json_array();
+
+				for (const auto& note : measure.notes) {
+					json_t *noteJ = json_object();
+
+					json_object_set_new(noteJ, "pitch", json_integer(note.pitch));
+					json_object_set_new(noteJ, "velocity", json_real(note.velocity));
+					json_object_set_new(noteJ, "retrigger", json_boolean(note.retrigger));
+					json_object_set_new(noteJ, "active", json_boolean(note.active));
+		
+					json_array_append_new(notesJ, noteJ);
+				}
+
+				json_object_set_new(measureJ, "notes", notesJ);
+				json_array_append_new(measuresJ, measureJ);
+			}
+
+			json_object_set_new(patternJ, "measures", measuresJ);
+			json_array_append_new(patternsJ, patternJ);
+		}
+
+		json_object_set_new(rootJ, "patterns", patternsJ);
+		json_object_set_new(rootJ, "currentPattern", json_integer(currentPattern));
+		json_object_set_new(rootJ, "currentStep", json_integer(currentStep));
+
+		return rootJ;
+	}
+
+	void fromJson(json_t *rootJ) override {
+		Module::fromJson(rootJ);
+
+		json_t *currentStepJ = json_object_get(rootJ, "currentStep");
+		if (currentStepJ) {
+			currentStep = json_integer_value(currentStepJ);
+		}
+
+		json_t *currentPatternJ = json_object_get(rootJ, "currentPattern");
+		if (currentPatternJ) {
+			currentPattern = json_integer_value(currentPatternJ);
+		}
+
+		patternData.resize(0);
+		json_t *patternsJ = json_object_get(rootJ, "patterns");
+		if (patternsJ) {
+			size_t i;
+			json_t *patternJ;
+			json_array_foreach(patternsJ, i, patternJ) {
+				Pattern pattern;
+
+				json_t *titleJ = json_object_get(patternJ, "title");
+				if (titleJ) {
+					pattern.title = json_string_value(titleJ);
+				}
+
+				json_t *numberOfMeasuresJ = json_object_get(patternJ, "numberOfMeasures");
+				if (numberOfMeasuresJ) {
+					pattern.numberOfMeasures = json_integer_value(numberOfMeasuresJ);
+				}
+
+				json_t *beatsPerMeasureJ = json_object_get(patternJ, "beatsPerMeasure");
+				if (beatsPerMeasureJ) {
+					pattern.beatsPerMeasure = json_integer_value(beatsPerMeasureJ);
+				}
+
+				json_t *divisionsPerBeatJ = json_object_get(patternJ, "divisionsPerBeat");
+				if (divisionsPerBeatJ) {
+					pattern.divisionsPerBeat = json_integer_value(divisionsPerBeatJ);
+				}
+
+				json_t *tripletsJ = json_object_get(patternJ, "triplets");
+				if (tripletsJ) {
+					pattern.triplets = json_boolean_value(tripletsJ);
+				}
+
+				json_t *measuresJ = json_object_get(patternJ, "measures");
+				if (measuresJ) {
+					pattern.measures.resize(0);
+
+					size_t j;
+					json_t *measureJ;
+					json_array_foreach(measuresJ, j, measureJ) {
+						Measure measure;
+
+						json_t *notesJ = json_object_get(measureJ, "notes");
+						if (notesJ) {
+							size_t k;
+							json_t *noteJ;
+							json_array_foreach(notesJ, k, noteJ) {
+								Note note;
+
+								json_t *pitchJ = json_object_get(noteJ, "pitch");
+								if (pitchJ) {
+									note.pitch = json_integer_value(pitchJ);
+								}
+
+								json_t *velocityJ = json_object_get(noteJ, "velocity");
+								if (velocityJ) {
+									note.velocity = json_number_value(velocityJ);
+								}
+
+								json_t *retriggerJ = json_object_get(noteJ, "retrigger");
+								if (retriggerJ) {
+									note.retrigger = json_boolean_value(retriggerJ);
+								}
+
+								json_t *activeJ = json_object_get(noteJ, "active");
+								if (activeJ) {
+									note.active = json_boolean_value(activeJ);
+								}
+
+								measure.notes.push_back(note);
+							}
+						}
+
+						pattern.measures.push_back(measure);
+					}
+				}
+
+				patternData.push_back(pattern);
+			}
+		}
+
+	}
 
 	void setBeatsPerMeasure(int value) {
 		patternData[currentPattern].beatsPerMeasure = value;

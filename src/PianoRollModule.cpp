@@ -216,7 +216,6 @@ struct PianoRollModule : Module {
 			currentPattern = json_integer_value(currentPatternJ);
 		}
 
-		patternData.resize(0);
 		json_t *patternsJ = json_object_get(rootJ, "patterns");
 		if (patternsJ) {
 			size_t i;

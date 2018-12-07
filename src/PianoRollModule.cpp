@@ -534,6 +534,7 @@ struct PianoRollWidget : ModuleWidget {
 	int currentOctave = 4;
 	int currentMeasure = 0;
 	float topMargins = 15;
+	int lastDrawnStep = -1;
 
 	ModuleDragType *currentDragType = NULL;
 
@@ -954,6 +955,12 @@ struct PianoRollWidget : ModuleWidget {
 
 		Rect roll = getRollArea();
 
+		int measure = module->currentStep / module->getDivisionsPerMeasure();
+		if (measure != currentMeasure && lastDrawnStep != module->currentStep) {
+			lastDrawnStep = module->currentStep;
+			currentMeasure = measure;
+		}
+
 		Rect keysArea = reserveKeysArea(roll);
 		auto keys = getKeys(keysArea, this->octaves);
 		drawKeys(ctx, keys);
@@ -1261,14 +1268,14 @@ PatternWidget::PatternWidget() {
 	addChild(divisionsPerBeatChoice);
 	this->divisionsPerBeatChoice = divisionsPerBeatChoice;
 
-	this->divisionsPerBeatSeparator = Widget::create<LedDisplaySeparator>(pos);
-	this->divisionsPerBeatSeparator->box.size.y = this->beatsPerMeasureChoice->box.size.y;
-	addChild(this->divisionsPerBeatSeparator);
+	// this->divisionsPerBeatSeparator = Widget::create<LedDisplaySeparator>(pos);
+	// this->divisionsPerBeatSeparator->box.size.y = this->beatsPerMeasureChoice->box.size.y;
+	// addChild(this->divisionsPerBeatSeparator);
 
-	TripletsChoice *tripletsChoice = Widget::create<TripletsChoice>(pos);
-	tripletsChoice->widget = this;
-	addChild(tripletsChoice);
-	this->tripletsChoice = tripletsChoice;
+	// TripletsChoice *tripletsChoice = Widget::create<TripletsChoice>(pos);
+	// tripletsChoice->widget = this;
+	// addChild(tripletsChoice);
+	// this->tripletsChoice = tripletsChoice;
 
 }
 
@@ -1277,12 +1284,16 @@ void PatternWidget::step() {
 	this->patternSeparator->box.size.x = box.size.x;
 	this->measuresChoice->box.size.x = box.size.x;
 	this->measuresSeparator->box.size.x = box.size.x;
-	this->beatsPerMeasureChoice->box.size.x = box.size.x / 3;
-	this->beatsPerMeasureSeparator->box.pos.x = box.size.x / 3;
-	this->divisionsPerBeatChoice->box.pos.x = box.size.x / 3;
-	this->divisionsPerBeatChoice->box.size.x = box.size.x / 3;
-	this->divisionsPerBeatSeparator->box.pos.x = box.size.x * (2.f/3.f);
-	this->tripletsChoice->box.pos.x = box.size.x * (2.f/3.f);
-	this->tripletsChoice->box.size.x = box.size.x / 3;
+	// this->beatsPerMeasureChoice->box.size.x = box.size.x / 3;
+	// this->beatsPerMeasureSeparator->box.pos.x = box.size.x / 3;
+	// this->divisionsPerBeatChoice->box.pos.x = box.size.x / 3;
+	// this->divisionsPerBeatChoice->box.size.x = box.size.x / 3;
+	// this->divisionsPerBeatSeparator->box.pos.x = box.size.x * (2.f/3.f);
+	// this->tripletsChoice->box.pos.x = box.size.x * (2.f/3.f);
+	// this->tripletsChoice->box.size.x = box.size.x / 3;
+	this->beatsPerMeasureChoice->box.size.x = box.size.x / 2;
+	this->beatsPerMeasureSeparator->box.pos.x = box.size.x / 2;
+	this->divisionsPerBeatChoice->box.pos.x = box.size.x / 2;
+	this->divisionsPerBeatChoice->box.size.x = box.size.x / 2;
 	LedDisplay::step();
 }

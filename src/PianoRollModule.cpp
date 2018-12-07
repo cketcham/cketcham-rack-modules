@@ -178,6 +178,13 @@ struct PianoRollModule : Module {
 
 	void step() override;
 
+	void onReset() override {
+		currentPattern = 0;
+		currentStep = -1;
+		patternData.resize(0);
+		patternData.resize(64);
+	}
+
 	json_t *toJson() override {
 		json_t *rootJ = Module::toJson();
 		if (rootJ == NULL) {

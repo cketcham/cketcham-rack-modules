@@ -8,6 +8,27 @@ static const float VELOCITY_SENSITIVITY = 0.0015f;
 struct PianoRollWidget;
 struct PianoRollModule;
 
+struct PatternWidget : LedDisplay {
+	/** Not owned */
+	PianoRollWidget *widget = NULL;
+	PianoRollModule *module = NULL;
+
+	LedDisplayChoice *patternChoice;
+	LedDisplaySeparator *patternSeparator;
+	LedDisplayChoice *octaveChoice;
+	LedDisplaySeparator *octaveSeparator;
+	LedDisplayChoice *measuresChoice;
+	LedDisplaySeparator *measuresSeparator;
+	LedDisplayChoice *beatsPerMeasureChoice;
+	LedDisplaySeparator *beatsPerMeasureSeparator;
+	LedDisplayChoice *divisionsPerBeatChoice;
+	LedDisplaySeparator *divisionsPerBeatSeparator;
+	LedDisplayChoice *tripletsChoice;
+	PatternWidget();
+	void step() override;
+};
+
+
 struct Note {
 	int pitch;
 	float velocity;
@@ -135,6 +156,7 @@ struct PianoRollModule : Module {
 		GATE_OUTPUT,
 		RETRIGGER_OUTPUT,
 		VELOCITY_OUTPUT,
+		END_OF_PATTERN_OUTPUT,
 		NUM_OUTPUTS
 	};
 	enum LightIds {
@@ -148,6 +170,7 @@ struct PianoRollModule : Module {
 	SchmittTrigger resetIn;
 	int currentStep = -1;
 	PulseGenerator retriggerOut;
+	PulseGenerator eopOut;
 
 	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 		patternData.resize(64);
@@ -218,6 +241,8 @@ struct PianoRollModule : Module {
 
 		json_t *patternsJ = json_object_get(rootJ, "patterns");
 		if (patternsJ) {
+			patternData.resize(0);
+
 			size_t i;
 			json_t *patternJ;
 			json_array_foreach(patternsJ, i, patternJ) {
@@ -464,6 +489,10 @@ void PianoRollModule::step() {
 
 	if (clockIn.process(inputs[CLOCK_INPUT].value)) {
 		currentStep = (currentStep + 1) % (getDivisionsPerMeasure() * patternData[currentPattern].numberOfMeasures);
+		if (currentStep == (getDivisionsPerMeasure() * patternData[currentPattern].numberOfMeasures) - 1) {
+			eopOut.trigger(1e-3f);
+		}
+
 		int measure = currentStep / getDivisionsPerMeasure();
 		int noteInMeasure = currentStep % getDivisionsPerMeasure();
 
@@ -486,9 +515,8 @@ void PianoRollModule::step() {
 	}
 
 	outputs[RETRIGGER_OUTPUT].value = retriggerOut.process(engineGetSampleTime()) ? 10.f : 0.f;
+	outputs[END_OF_PATTERN_OUTPUT].value = eopOut.process(engineGetSampleTime()) ? 10.f : 0.f;
 }
-
-
 
 struct PianoRollWidget : ModuleWidget {
 	PianoRollModule* module;
@@ -506,43 +534,33 @@ struct PianoRollWidget : ModuleWidget {
 		this->module = (PianoRollModule*)module;
 		setPanel(SVG::load(assetPlugin(plugin, "res/PianoRoll.svg")));
 
-		addParam(ParamWidget::create<PB61303>(Vec(560.000, 380.f-185.839-28), module, PianoRollModule::RUN_BUTTON_PARAM, 0.0, 1.0, 0.0));
-		addParam(ParamWidget::create<PB61303>(Vec(560.000, 380.f-154.693-28), module, PianoRollModule::RESET_BUTTON_PARAM, 0.0, 1.0, 0.0));
-
 		addInput(Port::create<PJ301MPort>(Vec(50.114, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::CLOCK_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(85.642, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RUN_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(121.170, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RESET_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(156.697, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::PATTERN_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(192.224, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RECORD_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(85.642, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RESET_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(121.170, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::PATTERN_INPUT));
+		//addInput(Port::create<PJ301MPort>(Vec(156.697, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RECORD_INPUT));
 
-		addInput(Port::create<PJ301MPort>(Vec(456.921, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::VOCT_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(492.448, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::GATE_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(527.976, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RETRIGGER_INPUT));
-		addInput(Port::create<PJ301MPort>(Vec(563.503, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::VELOCITY_INPUT));
+		// addInput(Port::create<PJ301MPort>(Vec(456.921, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::VOCT_INPUT));
+		// addInput(Port::create<PJ301MPort>(Vec(492.448, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::GATE_INPUT));
+		// addInput(Port::create<PJ301MPort>(Vec(527.976, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RETRIGGER_INPUT));
+		// addInput(Port::create<PJ301MPort>(Vec(563.503, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::VELOCITY_INPUT));
 
-		addOutput(Port::create<PJ301MPort>(Vec(50.114, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::CLOCK_OUTPUT));
-		addOutput(Port::create<PJ301MPort>(Vec(85.642, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::RUN_OUTPUT));
-		addOutput(Port::create<PJ301MPort>(Vec(121.170, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::RESET_OUTPUT));
-		addOutput(Port::create<PJ301MPort>(Vec(156.697, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::PATTERN_OUTPUT));
-		addOutput(Port::create<PJ301MPort>(Vec(192.224, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::RECORD_OUTPUT));
+		// addOutput(Port::create<PJ301MPort>(Vec(50.114, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::CLOCK_OUTPUT));
+		// addOutput(Port::create<PJ301MPort>(Vec(85.642, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::RUN_OUTPUT));
+		// addOutput(Port::create<PJ301MPort>(Vec(121.170, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::RESET_OUTPUT));
+		// addOutput(Port::create<PJ301MPort>(Vec(156.697, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::PATTERN_OUTPUT));
+		// addOutput(Port::create<PJ301MPort>(Vec(192.224, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::RECORD_OUTPUT));
 
-		addOutput(Port::create<PJ301MPort>(Vec(456.921, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::VOCT_OUTPUT));
-		addOutput(Port::create<PJ301MPort>(Vec(492.448, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::GATE_OUTPUT));
-		addOutput(Port::create<PJ301MPort>(Vec(527.976, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::RETRIGGER_OUTPUT));
-		addOutput(Port::create<PJ301MPort>(Vec(563.503, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::VELOCITY_OUTPUT));
+		addOutput(Port::create<PJ301MPort>(Vec(421.394, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::VOCT_OUTPUT));
+		addOutput(Port::create<PJ301MPort>(Vec(456.921, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::GATE_OUTPUT));
+		addOutput(Port::create<PJ301MPort>(Vec(492.448, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::RETRIGGER_OUTPUT));
+		addOutput(Port::create<PJ301MPort>(Vec(527.976, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::VELOCITY_OUTPUT));
+		addOutput(Port::create<PJ301MPort>(Vec(563.503, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::END_OF_PATTERN_OUTPUT));
 
-		patternNameField = Widget::create<LedDisplayTextField>(Vec(505.257, 380.f-224.259-125.586));
-		patternNameField->box.size = Vec(86.863, 35);
-		patternNameField->multiline = true;
-		((LedDisplayTextField*)patternNameField)->color = COLOR_WHITE;
-		addChild(patternNameField);
-
-		patternInfoField = Widget::create<LedDisplayTextField>(Vec(505.257, 380.f-224.259-125.586+35));
-		patternInfoField->box.size = Vec(86.863, 95.586);
-		patternInfoField->multiline = true;
-		((LedDisplayTextField*)patternInfoField)->color = COLOR_WHITE;
-		addChild(patternInfoField);
-
+		PatternWidget* patternWidget = Widget::create<PatternWidget>(Vec(505.257, 380.f-224.259-125.586));
+		patternWidget->box.size = Vec(86.863, 80);
+		patternWidget->module = module;
+		patternWidget->widget = this;
+		addChild(patternWidget);
 	}
 
 	struct OctavesItem : MenuItem {
@@ -564,107 +582,11 @@ struct PianoRollWidget : ModuleWidget {
 		}
 	};
 
-	struct MeasuresItem : MenuItem {
-		char buffer[100];
-		PianoRollModule* module;
-		int value;
-		MeasuresItem(PianoRollModule* module, int value) {
-			this->module = module;
-			this->value = value;
-
-			snprintf(buffer, 10, "%d", value);
-			text = buffer;
-			if (value == module->patternData[module->currentPattern].numberOfMeasures) {
-				rightText = "✓";
-			}
-		}
-		void onAction(EventAction &e) override {
-			module->setMeasures(value);
-		}
-	};
-
-	struct BeatsPerMeasureItem : MenuItem {
-		char buffer[100];
-		PianoRollModule* module;
-		int value;
-		BeatsPerMeasureItem(PianoRollModule* module, int value) {
-			this->module = module;
-			this->value = value;
-
-			snprintf(buffer, 10, "%d", value);
-			text = buffer;
-			if (value == module->patternData[module->currentPattern].beatsPerMeasure) {
-				rightText = "✓";
-			}
-		}
-		void onAction(EventAction &e) override {
-			module->setBeatsPerMeasure(value);
-		}
-	};
-
-	struct DivisionsPerBeatItem : MenuItem {
-		char buffer[100];
-		PianoRollModule* module;
-		int value;
-		DivisionsPerBeatItem(PianoRollModule* module, int value) {
-			this->module = module;
-			this->value = value;
-
-			snprintf(buffer, 10, "%d", value);
-			text = buffer;
-			if (value == module->patternData[module->currentPattern].divisionsPerBeat) {
-				rightText = "✓";
-			}
-		}
-		void onAction(EventAction &e) override {
-			module->setDivisionsPerBeat(value);
-		}
-	};
-
-	struct TripletsItem : MenuItem {
-		char buffer[100];
-		PianoRollModule* module;
-		TripletsItem(PianoRollModule* module) {
-			this->module = module;
-
-			text = "Triplets";
-			if (module->patternData[module->currentPattern].triplets) {
-				rightText = "✓";
-			}
-		}
-		void onAction(EventAction &e) override {
-			module->setTriplets(!module->patternData[module->currentPattern].triplets);
-		}
-	};
-
 	void appendContextMenu(Menu* menu) override {
 		menu->addChild(MenuLabel::create(""));
 		menu->addChild(MenuLabel::create("Octaves"));
 			menu->addChild(new OctavesItem(this, 1));
 			menu->addChild(new OctavesItem(this, 2));
-		menu->addChild(MenuLabel::create(""));
-		menu->addChild(MenuLabel::create("Measures"));
-			menu->addChild(new MeasuresItem(module, 1));
-			menu->addChild(new MeasuresItem(module, 2));
-			menu->addChild(new MeasuresItem(module, 4));
-			menu->addChild(new MeasuresItem(module, 8));
-			menu->addChild(new MeasuresItem(module, 16));
-		menu->addChild(MenuLabel::create(""));
-		menu->addChild(MenuLabel::create("Beats per measure"));
-			menu->addChild(new BeatsPerMeasureItem(module, 2));
-			menu->addChild(new BeatsPerMeasureItem(module, 3));
-			menu->addChild(new BeatsPerMeasureItem(module, 4));
-			menu->addChild(new BeatsPerMeasureItem(module, 5));
-			menu->addChild(new BeatsPerMeasureItem(module, 6));
-			menu->addChild(new BeatsPerMeasureItem(module, 7));
-			menu->addChild(new BeatsPerMeasureItem(module, 8));
-		menu->addChild(MenuLabel::create(""));
-		menu->addChild(MenuLabel::create("Divisions per beat"));
-			menu->addChild(new DivisionsPerBeatItem(module, 2));
-			menu->addChild(new DivisionsPerBeatItem(module, 4));
-			menu->addChild(new DivisionsPerBeatItem(module, 8));
-		menu->addChild(MenuLabel::create(""));
-		menu->addChild(new TripletsItem(module));
 	}
 
 	Rect getRollArea() {
@@ -1136,3 +1058,224 @@ void StandardModuleDragging::onDragMove(EventDragMove& e) {
 // change), human-readable module name, and any number of tags
 // (found in `include/tags.hpp`) separated by commas.
 Model *modelPianoRollModule = Model::create<PianoRollModule, PianoRollWidget>("rcm", "rcm-pianoroll", "Piano Roll", SEQUENCER_TAG);
+
+struct PatternItem : MenuItem {
+	PatternWidget *widget = NULL;
+	int pattern;
+	void onAction(EventAction &e) override {
+		widget->module->currentPattern = pattern;
+	}
+};
+
+struct PatternChoice : LedDisplayChoice {
+	PatternWidget *widget = NULL;
+
+	void onAction(EventAction &e) override {
+		Menu *menu = gScene->createMenu();
+		menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Pattern"));
+
+		for (int i = 0; i < 64; i++) {
+			PatternItem *item = new PatternItem();
+			item->widget = widget;
+			item->pattern = i;
+			item->text = stringf("%d/64", i+1);
+			item->rightText = CHECKMARK(item->pattern == widget->module->currentPattern);
+			menu->addChild(item);
+		}
+	}
+	void step() override {
+		text = stringf("Pattern %d", widget->module->currentPattern + 1);
+	}
+};
+
+struct MeasuresItem : MenuItem {
+	PatternWidget *widget = NULL;
+	int measures;
+	void onAction(EventAction &e) override {
+		widget->module->setMeasures(measures);
+	}
+};
+
+struct MeasuresChoice : LedDisplayChoice {
+	PatternWidget *widget = NULL;
+
+	void onAction(EventAction &e) override {
+		Menu *menu = gScene->createMenu();
+		menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Measures"));
+
+		for (int i = 1; i <= 16; i++) {
+			MeasuresItem *item = new MeasuresItem();
+			item->widget = widget;
+			item->measures = i;
+			item->text = stringf("%d measures", i);
+			item->rightText = CHECKMARK(item->measures == widget->module->patternData[widget->module->currentPattern].numberOfMeasures);
+			menu->addChild(item);
+		}
+	}
+	void step() override {
+		text = stringf("Measures %d", widget->module->patternData[widget->module->currentPattern].numberOfMeasures);
+	}
+};
+
+struct BeatsPerMeasureItem : MenuItem {
+	PatternWidget *widget = NULL;
+	int beatsPerMeasure;
+	void onAction(EventAction &e) override {
+		widget->module->setBeatsPerMeasure(beatsPerMeasure);
+	}
+};
+
+struct BeatsPerMeasureChoice : LedDisplayChoice {
+	PatternWidget *widget = NULL;
+
+	void onAction(EventAction &e) override {
+		Menu *menu = gScene->createMenu();
+		menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Beats Per Measure"));
+
+		for (int i = 1; i <= 16; i++) {
+			BeatsPerMeasureItem *item = new BeatsPerMeasureItem();
+			item->widget = widget;
+			item->beatsPerMeasure = i;
+			item->text = stringf("%d beats", i);
+			item->rightText = CHECKMARK(item->beatsPerMeasure == widget->module->patternData[widget->module->currentPattern].beatsPerMeasure);
+			menu->addChild(item);
+		}
+	}
+	void step() override {
+		text = stringf("%d", widget->module->patternData[widget->module->currentPattern].beatsPerMeasure);
+	}
+};
+
+struct DivisionsPerBeatItem : MenuItem {
+	PatternWidget *widget = NULL;
+	int divisionsPerBeat;
+	void onAction(EventAction &e) override {
+		widget->module->setDivisionsPerBeat(divisionsPerBeat);
+	}
+};
+
+struct DivisionsPerBeatChoice : LedDisplayChoice {
+	PatternWidget *widget = NULL;
+
+	void onAction(EventAction &e) override {
+		Menu *menu = gScene->createMenu();
+		menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Divisions Per Beat"));
+
+		for (int i = 1; i <= 16; i++) {
+			DivisionsPerBeatItem *item = new DivisionsPerBeatItem();
+			item->widget = widget;
+			item->divisionsPerBeat = i;
+			item->text = stringf("%d divisions", i);
+			item->rightText = CHECKMARK(item->divisionsPerBeat == widget->module->patternData[widget->module->currentPattern].divisionsPerBeat);
+			menu->addChild(item);
+		}
+	}
+	void step() override {
+		text = stringf("%d", widget->module->patternData[widget->module->currentPattern].divisionsPerBeat);
+	}
+};
+
+struct TripletsItem : MenuItem {
+	PatternWidget *widget = NULL;
+	bool triplets;
+	void onAction(EventAction &e) override {
+		widget->module->setTriplets(triplets);
+	}
+};
+
+struct TripletsChoice : LedDisplayChoice {
+	PatternWidget *widget = NULL;
+
+	void onAction(EventAction &e) override {
+		Menu *menu = gScene->createMenu();
+		menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Triplets"));
+
+		TripletsItem *itemyes = new TripletsItem();
+		itemyes->widget = widget;
+		itemyes->triplets = true;
+		itemyes->text = stringf("yes");
+		itemyes->rightText = CHECKMARK(itemyes->triplets == widget->module->patternData[widget->module->currentPattern].triplets);
+		menu->addChild(itemyes);
+
+		TripletsItem *itemno = new TripletsItem();
+		itemno->widget = widget;
+		itemno->triplets = false;
+		itemno->text = stringf("no");
+		itemno->rightText = CHECKMARK(itemno->triplets == widget->module->patternData[widget->module->currentPattern].triplets);
+		menu->addChild(itemno);
+	}
+	void step() override {
+		text = widget->module->patternData[widget->module->currentPattern].triplets ? "y" : "n";
+	}
+};
+
+
+PatternWidget::PatternWidget() {
+
+	// measuresChoice
+	// measuresSeparator
+	// beatsPerMeasureChoice
+	// beatsPerMeasureSeparator
+	// divisionsPerBeatChoice
+	// divisionsPerBeatSeparator
+	// tripletsChoice
+
+	Vec pos = Vec();
+
+	PatternChoice *patternChoice = Widget::create<PatternChoice>(pos);
+	patternChoice->widget = this;
+	addChild(patternChoice);
+	pos = patternChoice->box.getBottomLeft();
+	this->patternChoice = patternChoice;
+
+	this->patternSeparator = Widget::create<LedDisplaySeparator>(pos);
+	addChild(this->patternSeparator);
+
+	MeasuresChoice *measuresChoice = Widget::create<MeasuresChoice>(pos);
+	measuresChoice->widget = this;
+	addChild(measuresChoice);
+	pos = measuresChoice->box.getBottomLeft();
+	this->measuresChoice = measuresChoice;
+
+	this->measuresSeparator = Widget::create<LedDisplaySeparator>(pos);
+	addChild(this->measuresSeparator);
+
+	BeatsPerMeasureChoice *beatsPerMeasureChoice = Widget::create<BeatsPerMeasureChoice>(pos);
+	beatsPerMeasureChoice->widget = this;
+	addChild(beatsPerMeasureChoice);
+	this->beatsPerMeasureChoice = beatsPerMeasureChoice;
+
+	this->beatsPerMeasureSeparator = Widget::create<LedDisplaySeparator>(pos);
+	this->beatsPerMeasureSeparator->box.size.y = this->beatsPerMeasureChoice->box.size.y;
+	addChild(this->beatsPerMeasureSeparator);
+
+	DivisionsPerBeatChoice *divisionsPerBeatChoice = Widget::create<DivisionsPerBeatChoice>(pos);
+	divisionsPerBeatChoice->widget = this;
+	addChild(divisionsPerBeatChoice);
+	this->divisionsPerBeatChoice = divisionsPerBeatChoice;
+
+	this->divisionsPerBeatSeparator = Widget::create<LedDisplaySeparator>(pos);
+	this->divisionsPerBeatSeparator->box.size.y = this->beatsPerMeasureChoice->box.size.y;
+	addChild(this->divisionsPerBeatSeparator);
+
+	TripletsChoice *tripletsChoice = Widget::create<TripletsChoice>(pos);
+	tripletsChoice->widget = this;
+	addChild(tripletsChoice);
+	this->tripletsChoice = tripletsChoice;
+
+}
+
+void PatternWidget::step() {
+	this->patternChoice->box.size.x = box.size.x;
+	this->patternSeparator->box.size.x = box.size.x;
+	this->measuresChoice->box.size.x = box.size.x;
+	this->measuresSeparator->box.size.x = box.size.x;
+	this->beatsPerMeasureChoice->box.size.x = box.size.x / 3;
+	this->beatsPerMeasureSeparator->box.pos.x = box.size.x / 3;
+	this->divisionsPerBeatChoice->box.pos.x = box.size.x / 3;
+	this->divisionsPerBeatChoice->box.size.x = box.size.x / 3;
+	this->divisionsPerBeatSeparator->box.pos.x = box.size.x * (2.f/3.f);
+	this->tripletsChoice->box.pos.x = box.size.x * (2.f/3.f);
+	this->tripletsChoice->box.size.x = box.size.x / 3;
+	LedDisplay::step();
+}

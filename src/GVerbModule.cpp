@@ -236,15 +236,15 @@ struct GVerbModuleWidget : ModuleWidget {
 	GVerbModuleWidget(GVerbModule *module) : ModuleWidget(module) {
 		setPanel(SVG::load(assetPlugin(plugin, "res/Reverb.svg")));
 
-		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 44), module, GVerbModule::ROOM_SIZE_PARAM, 2.0, 300.0, 150.0));
-		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 115), module, GVerbModule::DAMPING_PARAM, 0.0, 1.0, 0.95));
+		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 44), module, GVerbModule::ROOM_SIZE_PARAM, 2.0, 300.0, 20.0));
+		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 115), module, GVerbModule::DAMPING_PARAM, 0.0, 1.0, 0.98));
 
-		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(127, 60), module, GVerbModule::REV_TIME_PARAM, 0.0, 10000.0, 5000.0));
-		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(127, 120), module, GVerbModule::BANDWIDTH_PARAM, 0.0, 1.0, 1.0));
+		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(127, 60), module, GVerbModule::REV_TIME_PARAM, 0.0, 10000.0, 1.0));
+		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(127, 120), module, GVerbModule::BANDWIDTH_PARAM, 0.0, 1.0, 0.01));
 		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(185, 60), module, GVerbModule::EARLY_LEVEL_PARAM, 0.0, 1.0, 0.8));
 		addParam(ParamWidget::create<Davies1900hWhiteKnob>(Vec(185, 120), module, GVerbModule::TAIL_LEVEL_PARAM, 0.0, 1.0, 0.5));
 
-		addParam(ParamWidget::create<RoundBlackKnob>(Vec(84, 189), module, GVerbModule::MIX_PARAM, 0.0, 1.0, 1.0));
+		addParam(ParamWidget::create<RoundBlackKnob>(Vec(84, 189), module, GVerbModule::MIX_PARAM, 0.0, 1.0, 0.4));
 		addParam(ParamWidget::create<RoundBlackKnob>(Vec(135, 189), module, GVerbModule::SPREAD_PARAM, 0.0, 1.0, 1.0));
 		addParam(ParamWidget::create<PB61303>(Vec(186, 189), module, GVerbModule::RESET_PARAM, 0.0, 1.0, 0.0));
 

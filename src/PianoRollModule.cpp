@@ -1052,6 +1052,37 @@ struct PianoRollWidget : ModuleWidget {
 
 
 
+	json_t *toJson() override {
+		json_t *rootJ = ModuleWidget::toJson();
+		if (rootJ == NULL) {
+				rootJ = json_object();
+		}
+
+		json_object_set_new(rootJ, "lowestDisplayNote", json_integer(this->lowestDisplayNote));
+		json_object_set_new(rootJ, "notesToShow", json_integer(this->notesToShow));
+		json_object_set_new(rootJ, "currentMeasure", json_integer(this->currentMeasure));
+		return rootJ;
+	}
+
+	void fromJson(json_t *rootJ) override {
+		ModuleWidget::fromJson(rootJ);
+
+		json_t *lowestDisplayNoteJ = json_object_get(rootJ, "lowestDisplayNote");
+		if (lowestDisplayNoteJ) {
+			lowestDisplayNote = json_integer_value(lowestDisplayNoteJ);
+		}
+
+		json_t *notesToShowJ = json_object_get(rootJ, "notesToShow");
+		if (notesToShowJ) {
+			notesToShow = json_integer_value(notesToShowJ);
+		}
+
+		json_t *currentMeasureJ = json_object_get(rootJ, "currentMeasure");
+		if (currentMeasureJ) {
+			currentMeasure = json_integer_value(currentMeasureJ);
+		}
+	}
+
 };
 
 void KeyboardDragging::onDragMove(EventDragMove& e) {

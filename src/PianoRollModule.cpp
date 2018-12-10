@@ -4,6 +4,7 @@
 #include <tuple>
 
 static const float VELOCITY_SENSITIVITY = 0.0015f;
+static const float KEYBOARDDRAG_SENSITIVITY = 0.1f;
 
 struct PianoRollWidget;
 struct PianoRollModule;
@@ -93,6 +94,20 @@ struct ModuleDragType {
 	virtual ~ModuleDragType() {}
 
 	virtual void onDragMove(EventDragMove& e) = 0;
+};
+
+struct KeyboardDragging : public ModuleDragType {
+	float offset = 0;
+
+	KeyboardDragging(PianoRollWidget* widget, PianoRollModule* module) : ModuleDragType(widget, module) {
+		windowCursorLock();
+	}
+
+	~KeyboardDragging() {
+		windowCursorUnlock();
+	}
+
+	void onDragMove(EventDragMove& e) override;
 };
 
 struct NotePaintDragging : public ModuleDragType {
@@ -621,7 +636,7 @@ struct PianoRollWidget : ModuleWidget {
 		int offset = lowestDisplayNote % 12;
 
 		for (int i = 0; i < keyCount; i++) {
-			int n = (i+offset) % 12;
+			int n = (i+offset+12) % 12;
 			keys.push_back(
 				Key(
 					Vec(keysArea.pos.x, (keysArea.pos.y + keysArea.size.y) - ( (1 + i) * keyHeight) ),
@@ -1003,10 +1018,16 @@ struct PianoRollWidget : ModuleWidget {
 		Vec pos = gRackWidget->lastMousePos.minus(box.pos);
 		std::tuple<bool, BeatDiv, Key> cell = findCell(pos);
 
+		Rect roll = getRollArea();
+		Rect keysArea = reserveKeysArea(roll);
+		bool inKeysArea = keysArea.contains(pos);
+
 		if (std::get<0>(cell) && windowIsShiftPressed()) {
 			currentDragType = new VelocityDragging(this, module, this->currentMeasure, std::get<1>(cell).num);
 		} else if (std::get<0>(cell)) {
 			currentDragType = new NotePaintDragging(this, module);
+		} else if (inKeysArea) {
+			currentDragType = new KeyboardDragging(this, module);
 		} else {
 			currentDragType = new StandardModuleDragging(this, module);
 		}
@@ -1033,6 +1054,27 @@ struct PianoRollWidget : ModuleWidget {
 
 };
 
+void KeyboardDragging::onDragMove(EventDragMove& e) {
+	float speed = 1.f;
+	float range = 1.f;
+
+	float delta = KEYBOARDDRAG_SENSITIVITY * e.mouseRel.y * speed * range;
+	if (windowIsModPressed()) {
+		delta /= 16.f;
+	}
+
+	offset += delta;
+
+	while (offset >= 1.f) {
+		widget->lowestDisplayNote = clamp(widget->lowestDisplayNote + 1, -1 * 12, 8 * 12);
+		offset -= 1;
+	}
+
+	while (offset <= -1.f) {
+		widget->lowestDisplayNote = clamp(widget->lowestDisplayNote - 1, -1 * 12, 8 * 12);
+		offset += 1;
+	}
+}
 
 void NotePaintDragging::onDragMove(EventDragMove& e) {
 	Vec pos = gRackWidget->lastMousePos.minus(widget->box.pos);

@@ -491,7 +491,11 @@ void PianoRollModule::step() {
 	}
 
 	if (inputs[PATTERN_INPUT].active) {
-		currentPattern = floor(rescale(clamp(inputs[PATTERN_INPUT].value, 0.f, 10.f), 0, 10, 0, 63));
+		int nextPattern = floor(rescale(clamp(inputs[PATTERN_INPUT].value, 0.f, 10.f), 0, 10, 0, 63));
+		if (nextPattern != currentPattern) {
+			currentPattern = nextPattern;
+			currentStep = -1;
+		}
 	}
 
 	if (clockIn.process(inputs[CLOCK_INPUT].value)) {

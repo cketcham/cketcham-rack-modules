@@ -534,8 +534,8 @@ struct PianoRollWidget : ModuleWidget {
 	TextField *patternNameField;
 	TextField *patternInfoField;
 
-	int octaves = 1;
-	int currentOctave = 4;
+	int notesToShow = 12;
+	int lowestDisplayNote = 4 * 12;
 	int currentMeasure = 0;
 	float topMargins = 15;
 	int lastDrawnStep = -1;
@@ -575,30 +575,31 @@ struct PianoRollWidget : ModuleWidget {
 		addChild(patternWidget);
 	}
 
-	struct OctavesItem : MenuItem {
+	struct NotesToShowItem : MenuItem {
 		char buffer[100];
 		PianoRollWidget* module;
 		int value;
-		OctavesItem(PianoRollWidget* module, int value) {
+		NotesToShowItem(PianoRollWidget* module, int value) {
 			this->module = module;
 			this->value = value;
 
 			snprintf(buffer, 10, "%d", value);
 			text = buffer;
-			if (value == module->octaves) {
+			if (value == module->notesToShow) {
 				rightText = "✓";
 			}
 		}
 		void onAction(EventAction &e) override {
-			module->octaves = value;
+			module->notesToShow = value;
 		}
 	};
 
 	void appendContextMenu(Menu* menu) override {
 		menu->addChild(MenuLabel::create(""));
-		menu->addChild(MenuLabel::create("Octaves"));
-			menu->addChild(new OctavesItem(this, 1));
-			menu->addChild(new OctavesItem(this, 2));
+		menu->addChild(MenuLabel::create("Notes to Show"));
+			menu->addChild(new NotesToShowItem(this, 12));
+			menu->addChild(new NotesToShowItem(this, 18));
+			menu->addChild(new NotesToShowItem(this, 24));
 	}
 
 	Rect getRollArea() {
@@ -610,21 +611,24 @@ struct PianoRollWidget : ModuleWidget {
 		return roll;
 	}
 
-	std::vector<Key> getKeys(const Rect& keysArea, int octaves) {
+	std::vector<Key> getKeys(const Rect& keysArea) {
 		std::vector<Key> keys;
 
-		int keyCount = (octaves * 12) + 1;
+		int keyCount = (notesToShow) + 1;
 		float keyHeight = keysArea.size.y / keyCount;
 
+		int octave = lowestDisplayNote / 12;
+		int offset = lowestDisplayNote % 12;
+
 		for (int i = 0; i < keyCount; i++) {
-			int n = i % 12;
+			int n = (i+offset) % 12;
 			keys.push_back(
 				Key(
 					Vec(keysArea.pos.x, (keysArea.pos.y + keysArea.size.y) - ( (1 + i) * keyHeight) ),
 					Vec(keysArea.size.x, keyHeight ),
 					n == 1 || n == 3 || n == 6 || n == 8 || n == 10,
-					i % 12,
-					currentOctave + (i / 12)
+					(i+offset) % 12,
+					octave + ((i+offset) / 12)
 				)
 			);
 		}
@@ -676,7 +680,7 @@ struct PianoRollWidget : ModuleWidget {
 
 	std::tuple<bool, int> findMeasure(Vec pos) {
 		Rect roll = getRollArea();
-		Rect keysArea = reserveKeysArea(roll);
+		reserveKeysArea(roll);
 
 		float widthPerMeasure = roll.size.x / module->patternData[module->currentPattern].numberOfMeasures;
 		float boxHeight = topMargins * 0.75;
@@ -709,7 +713,7 @@ struct PianoRollWidget : ModuleWidget {
 			return std::make_tuple(false, BeatDiv(), Key());
 		}
 
-		auto keys = getKeys(keysArea, this->octaves);
+		auto keys = getKeys(keysArea);
 		bool keyFound = false;
 		Key cellKey;
 
@@ -738,9 +742,7 @@ struct PianoRollWidget : ModuleWidget {
 
 
 	void drawKeys(NVGcontext *ctx, const std::vector<Key> &keys) {
-		int n = 0;
 		char buffer[100];
-		int displayOctave = currentOctave;
 
 		for (auto const& key: keys) {
 			nvgBeginPath(ctx);
@@ -757,20 +759,15 @@ struct PianoRollWidget : ModuleWidget {
 			nvgStroke(ctx);
 			nvgFill(ctx);
 
-			if (n == 0) {
+			if (key.num == 0) {
 				nvgBeginPath(ctx);
-				snprintf(buffer, 10, "C%d", displayOctave);
+				snprintf(buffer, 10, "C%d", key.oct);
 				nvgFontSize(ctx,key.size.y);
 				nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.0));
 				nvgFillColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.0));
 				nvgText(ctx, key.pos.x + 4, key.pos.y + key.size.y - 2, buffer, NULL);
 				nvgStroke(ctx);
 				nvgFill(ctx);
-			}
-
-			n = (n + 1) % 12;
-			if (n == 0) {
-				displayOctave += 1;
 			}
 		}
 	}
@@ -966,7 +963,7 @@ struct PianoRollWidget : ModuleWidget {
 		}
 
 		Rect keysArea = reserveKeysArea(roll);
-		auto keys = getKeys(keysArea, this->octaves);
+		auto keys = getKeys(keysArea);
 		drawKeys(ctx, keys);
 		drawSwimLanes(ctx, roll, keys);
 		auto beatDivs = getBeatDivs(roll, module->patternData[module->currentPattern].beatsPerMeasure, module->patternData[module->currentPattern].divisionsPerBeat, module->patternData[module->currentPattern].triplets);
@@ -992,9 +989,9 @@ struct PianoRollWidget : ModuleWidget {
 			int pitch = std::get<2>(cell).pitch();
 			module->toggleCellRetrigger(currentMeasure, beatDiv, pitch);
 		} else if (e.button == 0 && std::get<0>(octaveSwitch)) {
-			this->currentOctave = clamp(currentOctave + 1, -1, 8);
+			this->lowestDisplayNote = clamp(this->lowestDisplayNote + 12, -1 * 12, 8 * 12);
 		} else if (e.button == 0 && std::get<1>(octaveSwitch)) {
-			this->currentOctave = clamp(currentOctave - 1, -1, 8);
+			this->lowestDisplayNote = clamp(this->lowestDisplayNote - 12, -1 * 12, 8 * 12);
 		} else if (e.button == 0 && std::get<0>(measureSwitch)) {
 			this->currentMeasure = std::get<1>(measureSwitch);
 		} else {

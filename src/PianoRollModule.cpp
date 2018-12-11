@@ -5,6 +5,7 @@
 
 static const float VELOCITY_SENSITIVITY = 0.0015f;
 static const float KEYBOARDDRAG_SENSITIVITY = 0.1f;
+static const float MAX_GATE_DURATION = 2.0f;
 
 struct PianoRollWidget;
 struct PianoRollModule;
@@ -186,7 +187,7 @@ struct PianoRollModule : Module {
 	int currentStep = -1;
 	PulseGenerator retriggerOut;
 	PulseGenerator eopOut;
-	float gateLevel = 0.f;
+	PulseGenerator gateOut;
 
 	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 		patternData.resize(64);
@@ -503,7 +504,7 @@ struct PianoRollModule : Module {
 void PianoRollModule::step() {
 	if (resetIn.process(inputs[RESET_INPUT].value)) {
 		currentStep = -1;
-		gateLevel = 0.f;
+		gateOut.reset();
 	}
 
 	if (inputs[PATTERN_INPUT].active) {
@@ -528,22 +529,26 @@ void PianoRollModule::step() {
 				&& (int)patternData[currentPattern].measures[measure].notes.size() > noteInMeasure
 				&& patternData[currentPattern].measures[measure].notes[noteInMeasure].active) {
 
-			if (gateLevel == 0.f || patternData[currentPattern].measures[measure].notes[noteInMeasure].retrigger) {
+			if (outputs[GATE_OUTPUT].value == 0.f || patternData[currentPattern].measures[measure].notes[noteInMeasure].retrigger) {
 				retriggerOut.trigger(1e-3f);
 			}
 
-			gateLevel = 10.f;
+			gateOut.trigger(MAX_GATE_DURATION);
 			outputs[VELOCITY_OUTPUT].value = patternData[currentPattern].measures[measure].notes[noteInMeasure].velocity * 10.f;
 			float octave = patternData[currentPattern].measures[measure].notes[noteInMeasure].pitch / 12;
 			float semitone = patternData[currentPattern].measures[measure].notes[noteInMeasure].pitch % 12;
 			outputs[VOCT_OUTPUT].value = (octave-4.f) + ((1.f/12.f) * semitone);
 		} else {
-			gateLevel = 0.f;
+			gateOut.reset();
 		}
 	}
 
 	outputs[RETRIGGER_OUTPUT].value = retriggerOut.process(engineGetSampleTime()) ? 10.f : 0.f;
-	outputs[GATE_OUTPUT].value = gateLevel - (outputs[RETRIGGER_OUTPUT].active ? 0.f : outputs[RETRIGGER_OUTPUT].value);
+	outputs[GATE_OUTPUT].value = gateOut.process(engineGetSampleTime()) ? 10.f : 0.f;
+	if (outputs[RETRIGGER_OUTPUT].active == false && outputs[RETRIGGER_OUTPUT].value > 0.f) {
+		// If we're not using the retrigger output, override the gate output to 0 for the trigger duration instead
+		outputs[GATE_OUTPUT].value = 0.f;
+	}
 	outputs[END_OF_PATTERN_OUTPUT].value = eopOut.process(engineGetSampleTime()) ? 10.f : 0.f;
 }
 

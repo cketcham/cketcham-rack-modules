@@ -136,9 +136,7 @@ struct VelocityDragging : public ModuleDragType {
 		windowCursorLock();
 	}
 
-	~VelocityDragging() {
-		windowCursorUnlock();
-	}
+	~VelocityDragging();
 
 	void onDragMove(EventDragMove& e) override;
 };
@@ -430,13 +428,14 @@ struct PianoRollModule : Module {
 		}
 	}
 
-	void adjustVelocity(int measure, int note, float delta) {
+	float adjustVelocity(int measure, int note, float delta) {
+		float velocity = 0.f;
 		if ((int)patternData[currentPattern].measures.size() <= measure) {
-			return;
+			return velocity;
 		}
 
 		if ((int)patternData[currentPattern].measures[measure].notes.size() <= note) {
-			return;
+			return velocity;
 		}
 
 		// find first note in the current group
@@ -450,7 +449,7 @@ struct PianoRollModule : Module {
 		}
 
 		// Adjust the velocity of that note
-		float velocity = clamp(patternData[currentPattern].measures[measure].notes[note].velocity + delta, 0.f, 1.f);
+		velocity = clamp(patternData[currentPattern].measures[measure].notes[note].velocity + delta, 0.f, 1.f);
 
 		// Apply new velocity to all notes in the group
 		while (patternData[currentPattern].measures[measure].notes[note].active && patternData[currentPattern].measures[measure].notes[note].pitch == pitch) {
@@ -461,6 +460,8 @@ struct PianoRollModule : Module {
 				break;
 			}
 		}
+
+		return velocity;
 	}
 
 	void toggleCell(int measure, int note, int pitch) {
@@ -587,6 +588,8 @@ struct PianoRollWidget : ModuleWidget {
 	int currentMeasure = 0;
 	float topMargins = 15;
 	int lastDrawnStep = -1;
+	float displayVelocityHigh = -1;
+	float displayVelocityLow = -1;
 
 	ModuleDragType *currentDragType = NULL;
 
@@ -1012,6 +1015,47 @@ struct PianoRollWidget : ModuleWidget {
 		}
 	}
 
+	void drawVelocityInfo(NVGcontext *ctx) {
+		char buffer[100];
+
+		if (displayVelocityHigh > -1 || displayVelocityLow > -1) {
+			float displayVelocity = max(displayVelocityHigh, displayVelocityLow);
+
+			Rect roll = getRollArea();
+			reserveKeysArea(roll);
+
+			float posy;
+			if (displayVelocityHigh > -1) {
+				posy = roll.pos.y + ((roll.size.y * 0.25) * 1);
+			} else {
+				posy = roll.pos.y + ((roll.size.y * 0.25) * 3);				
+			}
+
+			nvgBeginPath(ctx);
+			snprintf(buffer, 100, "Velocity: %06.3fV (Midi %03d)", displayVelocity * 10.f, (int)(127 * displayVelocity));
+
+			nvgFontSize(ctx, roll.size.y / 8.f);
+			float *bounds = new float[4];
+			nvgTextBounds(ctx, roll.pos.x, posy, buffer, NULL, bounds);
+
+			nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.0f));
+			nvgStrokeWidth(ctx, 5.f);
+			nvgFillColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.0f));
+			nvgRect(ctx, roll.pos.x + (roll.size.x / 2.f) - ((bounds[2] - bounds[0]) / 2.f), bounds[1], bounds[2]-bounds[0], bounds[3]-bounds[1]);
+			nvgStroke(ctx);
+			nvgFill(ctx);
+
+			nvgBeginPath(ctx);
+			nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.0f));
+			nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.0f));
+			nvgText(ctx, roll.pos.x + (roll.size.x / 2.f) - ((bounds[2] - bounds[0]) / 2.f), posy, buffer, NULL);
+
+			delete bounds;
+
+			nvgStroke(ctx);
+			nvgFill(ctx);
+		}
+	}
 
 	// Event Handlers
 
@@ -1035,6 +1079,7 @@ struct PianoRollWidget : ModuleWidget {
 		drawNotes(ctx, keys, beatDivs, module->patternData[module->currentPattern].measures);
 		drawMeasures(ctx, module->patternData[module->currentPattern].numberOfMeasures, this->currentMeasure);
 		drawPlayPosition(ctx, module->currentStep, module->patternData[module->currentPattern].numberOfMeasures, module->patternData[module->currentPattern].divisionsPerBeat, this->currentMeasure);
+		drawVelocityInfo(ctx);
 	}	
 
 	void onMouseDown(EventMouseDown& e) override {
@@ -1225,6 +1270,12 @@ void NotePaintDragging::onDragMove(EventDragMove& e) {
 	};
 }
 
+VelocityDragging::~VelocityDragging() {
+	windowCursorUnlock();
+	widget->displayVelocityHigh = -1;
+	widget->displayVelocityLow = -1;
+}
+
 void VelocityDragging::onDragMove(EventDragMove& e) {
 	float speed = 1.f;
 	float range = 1.f;
@@ -1233,7 +1284,18 @@ void VelocityDragging::onDragMove(EventDragMove& e) {
 		delta /= 16.f;
 	}
 
-	module->adjustVelocity(measure, division, delta);
+	float newVelocity = module->adjustVelocity(measure, division, delta);
+
+	Rect roll = widget->getRollArea();
+	roll.size.y = roll.size.y / 2.f;
+	if (roll.contains(widget->dragPos)) {
+		widget->displayVelocityHigh = -1;
+		widget->displayVelocityLow = newVelocity;
+	} else {
+		widget->displayVelocityHigh = newVelocity;
+		widget->displayVelocityLow = -1;
+	}
+
 }
 
 void StandardModuleDragging::onDragMove(EventDragMove& e) {

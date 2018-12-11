@@ -97,6 +97,13 @@ struct ModuleDragType {
 	virtual void onDragMove(EventDragMove& e) = 0;
 };
 
+struct PlayPositionDragging : public ModuleDragType {
+	PlayPositionDragging(PianoRollWidget* widget, PianoRollModule* module);
+	~PlayPositionDragging();
+
+	void onDragMove(EventDragMove& e) override;
+};
+
 struct KeyboardDragging : public ModuleDragType {
 	float offset = 0;
 
@@ -116,7 +123,7 @@ struct NotePaintDragging : public ModuleDragType {
 	int lastDragPitch;
 
 	NotePaintDragging(PianoRollWidget* widget, PianoRollModule* module) : ModuleDragType(widget, module) {}
-	~NotePaintDragging() {};
+	~NotePaintDragging();
 
 	void onDragMove(EventDragMove& e) override;
 };
@@ -188,6 +195,9 @@ struct PianoRollModule : Module {
 	PulseGenerator retriggerOut;
 	PulseGenerator eopOut;
 	PulseGenerator gateOut;
+	int previousStep = -1;
+	int auditionStep = -1;
+	bool retriggerAudition = false;
 
 	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 		patternData.resize(64);
@@ -256,6 +266,7 @@ struct PianoRollModule : Module {
 		json_t *currentStepJ = json_object_get(rootJ, "currentStep");
 		if (currentStepJ) {
 			currentStep = json_integer_value(currentStepJ);
+			previousStep = currentStep;
 		}
 
 		json_t *currentPatternJ = json_object_get(rootJ, "currentPattern");
@@ -513,23 +524,37 @@ void PianoRollModule::step() {
 		if (nextPattern != currentPattern) {
 			currentPattern = nextPattern;
 			currentStep = -1;
+			previousStep = -1;
 		}
 	}
 
-	if (clockIn.process(inputs[CLOCK_INPUT].value)) {
+	bool clockTick = clockIn.process(inputs[CLOCK_INPUT].value);
+	if (clockTick) {
 		currentStep = (currentStep + 1) % (getDivisionsPerMeasure() * patternData[currentPattern].numberOfMeasures);
-		if (currentStep == (getDivisionsPerMeasure() * patternData[currentPattern].numberOfMeasures) - 1) {
+	}
+
+	int playingStep = currentStep;
+
+	if (auditionStep > -1) {
+		playingStep = auditionStep;
+	}
+
+	if (previousStep != playingStep || retriggerAudition) {
+		previousStep = playingStep;
+		retriggerAudition = false;
+
+		if (playingStep == (getDivisionsPerMeasure() * patternData[currentPattern].numberOfMeasures) - 1) {
 			eopOut.trigger(1e-3f);
 		}
 
-		int measure = currentStep / getDivisionsPerMeasure();
-		int noteInMeasure = currentStep % getDivisionsPerMeasure();
+		int measure = playingStep / getDivisionsPerMeasure();
+		int noteInMeasure = playingStep % getDivisionsPerMeasure();
 
 		if ((int)patternData[currentPattern].measures.size() > measure 
 				&& (int)patternData[currentPattern].measures[measure].notes.size() > noteInMeasure
 				&& patternData[currentPattern].measures[measure].notes[noteInMeasure].active) {
 
-			if (outputs[GATE_OUTPUT].value == 0.f || patternData[currentPattern].measures[measure].notes[noteInMeasure].retrigger) {
+			if (gateOut.process(0) == false || patternData[currentPattern].measures[measure].notes[noteInMeasure].retrigger) {
 				retriggerOut.trigger(1e-3f);
 			}
 
@@ -1046,12 +1071,16 @@ struct PianoRollWidget : ModuleWidget {
 		Rect keysArea = reserveKeysArea(roll);
 		bool inKeysArea = keysArea.contains(pos);
 
+		Rect playDragArea(Vec(roll.pos.x, roll.pos.y), Vec(roll.size.x, topMargins));
+
 		if (std::get<0>(cell) && windowIsShiftPressed()) {
 			currentDragType = new VelocityDragging(this, module, this->currentMeasure, std::get<1>(cell).num);
 		} else if (std::get<0>(cell)) {
 			currentDragType = new NotePaintDragging(this, module);
 		} else if (inKeysArea) {
 			currentDragType = new KeyboardDragging(this, module);
+		} else if (playDragArea.contains(pos)) {
+			currentDragType = new PlayPositionDragging(this, module);
 		} else {
 			currentDragType = new StandardModuleDragging(this, module);
 		}
@@ -1109,6 +1138,47 @@ struct PianoRollWidget : ModuleWidget {
 
 };
 
+PlayPositionDragging::PlayPositionDragging(PianoRollWidget* widget, PianoRollModule* module): ModuleDragType(widget, module) {
+	module->retriggerAudition = true;
+}
+
+PlayPositionDragging::~PlayPositionDragging() {
+	module->auditionStep = -1;
+	module->gateOut.reset();
+}
+
+void PlayPositionDragging::onDragMove(EventDragMove& e) {
+		Rect roll = widget->getRollArea();
+		widget->reserveKeysArea(roll);
+
+		Vec pos = gRackWidget->lastMousePos.minus(widget->box.pos);
+
+		if (!roll.contains(pos)) {
+			return;
+		}
+
+		auto beatDivs = widget->getBeatDivs(roll, module->patternData[module->currentPattern].beatsPerMeasure, module->patternData[module->currentPattern].divisionsPerBeat, module->patternData[module->currentPattern].triplets);
+		bool beatDivFound = false;
+		BeatDiv cellBeatDiv;
+
+		for (auto const& beatDiv: beatDivs) {
+			if (Rect(Vec(beatDiv.pos.x, 0), Vec(beatDiv.size.x, roll.size.y)).contains(pos)) {
+				cellBeatDiv = beatDiv;
+				beatDivFound = true;
+				break;
+			}
+		}
+
+		if (beatDivFound) {
+			info("Beat div found: %d", cellBeatDiv.num);
+			module->currentStep = cellBeatDiv.num + (module->getDivisionsPerMeasure() * widget->currentMeasure);
+			module->auditionStep = cellBeatDiv.num + (module->getDivisionsPerMeasure() * widget->currentMeasure);
+		} else {
+			module->auditionStep = -1;
+		}
+
+}
+
 void KeyboardDragging::onDragMove(EventDragMove& e) {
 	float speed = 1.f;
 	float range = 1.f;
@@ -1131,6 +1201,10 @@ void KeyboardDragging::onDragMove(EventDragMove& e) {
 	}
 }
 
+NotePaintDragging::~NotePaintDragging() {
+	module->gateOut.reset();
+}
+
 void NotePaintDragging::onDragMove(EventDragMove& e) {
 	Vec pos = gRackWidget->lastMousePos.minus(widget->box.pos);
 
@@ -1146,6 +1220,8 @@ void NotePaintDragging::onDragMove(EventDragMove& e) {
 		lastDragBeatDiv = beatDiv;
 		lastDragPitch = pitch;
 		module->toggleCell(widget->currentMeasure, beatDiv, pitch);
+		module->auditionStep = beatDiv + (module->getDivisionsPerMeasure() * widget->currentMeasure);
+		module->retriggerAudition = true;
 	};
 }
 

@@ -1103,6 +1103,7 @@ struct PianoRollWidget : ModuleWidget {
 			this->lowestDisplayNote = clamp(this->lowestDisplayNote - 12, -1 * 12, 8 * 12);
 		} else if (e.button == 0 && std::get<0>(measureSwitch)) {
 			this->currentMeasure = std::get<1>(measureSwitch);
+			lastDrawnStep = module->currentStep;
 		} else {
 			ModuleWidget::onMouseDown(e);
 		}
@@ -1217,9 +1218,9 @@ void PlayPositionDragging::onDragMove(EventDragMove& e) {
 		}
 
 		if (beatDivFound) {
-			info("Beat div found: %d", cellBeatDiv.num);
 			module->currentStep = cellBeatDiv.num + (module->getDivisionsPerMeasure() * widget->currentMeasure);
 			module->auditionStep = cellBeatDiv.num + (module->getDivisionsPerMeasure() * widget->currentMeasure);
+			widget->lastDrawnStep = module->currentStep;
 		} else {
 			module->auditionStep = -1;
 		}

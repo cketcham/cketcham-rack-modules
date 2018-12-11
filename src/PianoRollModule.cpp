@@ -552,7 +552,7 @@ struct PianoRollWidget : ModuleWidget {
 	TextField *patternNameField;
 	TextField *patternInfoField;
 
-	int notesToShow = 12;
+	int notesToShow = 18;
 	int lowestDisplayNote = 4 * 12;
 	int currentMeasure = 0;
 	float topMargins = 15;
@@ -620,6 +620,7 @@ struct PianoRollWidget : ModuleWidget {
 			menu->addChild(new NotesToShowItem(this, 24));
 			menu->addChild(new NotesToShowItem(this, 36));
 			menu->addChild(new NotesToShowItem(this, 48));
+			menu->addChild(new NotesToShowItem(this, 60));
 	}
 
 	Rect getRollArea() {

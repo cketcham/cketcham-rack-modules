@@ -795,9 +795,22 @@ struct PianoRollWidget : ModuleWidget {
 	void drawSwimLanes(NVGcontext *ctx, const Rect &roll, const std::vector<Key> &keys) {
 
 		for (auto const& key: keys) {
+
+			if (key.sharp) {
+				nvgBeginPath(ctx);
+				nvgFillColor(ctx, nvgRGBAf(0.f, 0.0f, 0.0f, 0.25f));
+				nvgRect(ctx, roll.pos.x, key.pos.y + 1, roll.size.x, key.size.y - 2);
+				nvgFill(ctx);
+			}
+
 			nvgBeginPath(ctx);
-			nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 0.5f));
-			nvgStrokeWidth(ctx, 0.5f);
+			if (key.num == 11) {
+				nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 0.5f));
+				nvgStrokeWidth(ctx, 1.0f);
+			} else {
+				nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 0.5f));
+				nvgStrokeWidth(ctx, 0.5f);
+			}
 			nvgMoveTo(ctx, roll.pos.x, key.pos.y);
 			nvgLineTo(ctx, roll.pos.x + roll.size.x, key.pos.y);
 			nvgStroke(ctx);

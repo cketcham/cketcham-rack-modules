@@ -1188,8 +1188,10 @@ PlayPositionDragging::PlayPositionDragging(PianoRollWidget* widget, PianoRollMod
 }
 
 PlayPositionDragging::~PlayPositionDragging() {
-	module->auditionStep = -1;
 	module->gateOut.reset();
+	module->auditionStep = -1;
+	module->retriggerAudition = false;
+	module->previousStep = module->currentStep;
 }
 
 void PlayPositionDragging::onDragMove(EventDragMove& e) {
@@ -1248,6 +1250,9 @@ void KeyboardDragging::onDragMove(EventDragMove& e) {
 
 NotePaintDragging::~NotePaintDragging() {
 	module->gateOut.reset();
+	module->auditionStep = -1;
+	module->retriggerAudition = false;
+	module->previousStep = module->currentStep;
 }
 
 void NotePaintDragging::onDragMove(EventDragMove& e) {

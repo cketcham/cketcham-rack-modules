@@ -503,7 +503,7 @@ struct PianoRollModule : Module {
 void PianoRollModule::step() {
 	if (resetIn.process(inputs[RESET_INPUT].value)) {
 		currentStep = -1;
-		outputs[GATE_OUTPUT].value = 0.f;
+		gateLevel = 0.f;
 	}
 
 	if (inputs[PATTERN_INPUT].active) {
@@ -527,7 +527,7 @@ void PianoRollModule::step() {
 				&& (int)patternData[currentPattern].measures[measure].notes.size() > noteInMeasure
 				&& patternData[currentPattern].measures[measure].notes[noteInMeasure].active) {
 
-			if (outputs[GATE_OUTPUT].value == 0.f || patternData[currentPattern].measures[measure].notes[noteInMeasure].retrigger) {
+			if (gateLevel == 0.f || patternData[currentPattern].measures[measure].notes[noteInMeasure].retrigger) {
 				retriggerOut.trigger(1e-3f);
 			}
 

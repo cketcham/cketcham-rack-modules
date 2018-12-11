@@ -186,6 +186,7 @@ struct PianoRollModule : Module {
 	int currentStep = -1;
 	PulseGenerator retriggerOut;
 	PulseGenerator eopOut;
+	float gateLevel = 0.f;
 
 	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 		patternData.resize(64);
@@ -530,17 +531,18 @@ void PianoRollModule::step() {
 				retriggerOut.trigger(1e-3f);
 			}
 
-			outputs[GATE_OUTPUT].value = 10.f;
+			gateLevel = 10.f;
 			outputs[VELOCITY_OUTPUT].value = patternData[currentPattern].measures[measure].notes[noteInMeasure].velocity * 10.f;
 			float octave = patternData[currentPattern].measures[measure].notes[noteInMeasure].pitch / 12;
 			float semitone = patternData[currentPattern].measures[measure].notes[noteInMeasure].pitch % 12;
 			outputs[VOCT_OUTPUT].value = (octave-4.f) + ((1.f/12.f) * semitone);
 		} else {
-			outputs[GATE_OUTPUT].value = 0.f;
+			gateLevel = 0.f;
 		}
 	}
 
 	outputs[RETRIGGER_OUTPUT].value = retriggerOut.process(engineGetSampleTime()) ? 10.f : 0.f;
+	outputs[GATE_OUTPUT].value = gateLevel - (outputs[RETRIGGER_OUTPUT].active ? 0.f : outputs[RETRIGGER_OUTPUT].value);
 	outputs[END_OF_PATTERN_OUTPUT].value = eopOut.process(engineGetSampleTime()) ? 10.f : 0.f;
 }
 
@@ -615,6 +617,8 @@ struct PianoRollWidget : ModuleWidget {
 			menu->addChild(new NotesToShowItem(this, 12));
 			menu->addChild(new NotesToShowItem(this, 18));
 			menu->addChild(new NotesToShowItem(this, 24));
+			menu->addChild(new NotesToShowItem(this, 36));
+			menu->addChild(new NotesToShowItem(this, 48));
 	}
 
 	Rect getRollArea() {

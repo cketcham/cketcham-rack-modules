@@ -15,6 +15,8 @@ Controls:
 * Use the panel on the right to alter the current pattern and its make-up.
 * Send a pulse to clock-in to advance each step (no internal clock).
 * Send a pulse to reset to prepare to play the current pattern from the start (plays 1st note on receiving first clock).
+* Click the area above the notes to set the play position. Triggers the notes at that position. You can drag across.
+* CV input for pattern selection is based on 1V/oct pitch information. Send C4 for first pattern, C#4 for second, D4 for third, etc.
 
 ## Reverb
 

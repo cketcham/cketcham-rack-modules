@@ -516,6 +516,7 @@ struct PianoRollModule : Module {
 void PianoRollModule::step() {
 	if (resetIn.process(inputs[RESET_INPUT].value)) {
 		currentStep = -1;
+		previousStep = -1;
 		gateOut.reset();
 	}
 
@@ -540,7 +541,7 @@ void PianoRollModule::step() {
 		playingStep = auditionStep;
 	}
 
-	if (previousStep != playingStep || retriggerAudition) {
+	if (playingStep > -1 && (previousStep != playingStep || retriggerAudition)) {
 		previousStep = playingStep;
 		retriggerAudition = false;
 

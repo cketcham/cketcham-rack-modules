@@ -398,14 +398,13 @@ struct PianoRollModule : Module {
 					continue;
 				}
 				if (measure.notes[i].active) {
-					if ((int)measure.notes.size() > newPos) {
-						measure.notes[i].retrigger |= measure.notes[i].active && measure.notes[i].retrigger;
-					}
 
 					// Copy note to new location
 					// Keep it's gate length by smearing the note across multiple locations if necessary
 					for (int n = 0; n < smear; n++) {
+					  bool retrigger = scratch[newPos].retrigger || (measure.notes[i].active && measure.notes[i].retrigger);
 						scratch[newPos + n] = measure.notes[i];
+						scratch[newPos + n].retrigger = retrigger;
 						
 						if (n > 0) {
 							// don't retrigger smeared notes

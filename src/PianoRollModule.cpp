@@ -221,7 +221,7 @@ struct PianoRollModule : Module {
 
 		json_t *patternsJ = json_array();
 		int max = 0;
-		for (int i = 0; i < patternData.size(); i++) {
+		for (int i = 0; i < (int)patternData.size(); i++) {
 			if (patternData[i].measures.size() > 0) {
 				max = i;
 			}

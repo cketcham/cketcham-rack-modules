@@ -7,7 +7,7 @@ SLUG = rcm
 
 # Must follow the format in the Versioning section of
 # https://vcvrack.com/manual/PluginDevelopmentTutorial.html
-VERSION = 0.6.7
+VERSION = 0.6.8
 
 # FLAGS will be passed to both the C and C++ compiler
 #FLAGS += -Idep/openmpt-libopenmpt-0.3.10/soundlib -Idep/openmpt-libopenmpt-0.3.10/common

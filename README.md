@@ -18,6 +18,8 @@ Controls:
 * Click the area above the notes to set the play position. Triggers the notes at that position. You can drag across.
 * CV input for pattern selection is based on 1V/oct pitch information. Send C4 for first pattern, C#4 for second, D4 for third, etc.
 
+The clock input can be delayed by a few samples if you have timing issues with switching patterns.
+
 ## Reverb
 
 Based on the GVerb GPL'd reverb code.

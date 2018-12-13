@@ -1,6 +1,7 @@
 #include "GVerbWidget.hpp"
 #include "window.hpp"
 #include "dsp/digital.hpp"
+#include "dsp/ringbuffer.hpp"
 #include <tuple>
 
 static const float VELOCITY_SENSITIVITY = 0.0015f;
@@ -196,6 +197,8 @@ struct PianoRollModule : Module {
 	int previousStep = -1;
 	int auditionStep = -1;
 	bool retriggerAudition = false;
+	RingBuffer<float, 16> clockBuffer;
+	int clockDelay = 0;
 
 	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 		patternData.resize(64);
@@ -254,6 +257,7 @@ struct PianoRollModule : Module {
 		json_object_set_new(rootJ, "patterns", patternsJ);
 		json_object_set_new(rootJ, "currentPattern", json_integer(currentPattern));
 		json_object_set_new(rootJ, "currentStep", json_integer(currentStep));
+		json_object_set_new(rootJ, "clockDelay", json_integer(clockDelay));
 
 		return rootJ;
 	}
@@ -265,6 +269,11 @@ struct PianoRollModule : Module {
 		if (currentStepJ) {
 			currentStep = json_integer_value(currentStepJ);
 			previousStep = currentStep;
+		}
+
+		json_t *clockDelayJ = json_object_get(rootJ, "clockDelay");
+		if (clockDelayJ) {
+			clockDelay = json_integer_value(clockDelayJ);
 		}
 
 		json_t *currentPatternJ = json_object_get(rootJ, "currentPattern");
@@ -530,7 +539,16 @@ void PianoRollModule::step() {
 		}
 	}
 
-	bool clockTick = clockIn.process(inputs[CLOCK_INPUT].value);
+	while((int)clockBuffer.size() <= clockDelay) {
+		clockBuffer.push(inputs[CLOCK_INPUT].value);
+	}
+
+	bool clockTick = false;
+	
+	while((int)clockBuffer.size() > clockDelay) {
+		clockTick = clockIn.process(clockBuffer.shift());
+	}
+
 	if (clockTick) {
 		currentStep = (currentStep + 1) % (getDivisionsPerMeasure() * patternData[currentPattern].numberOfMeasures);
 	}
@@ -646,6 +664,25 @@ struct PianoRollWidget : ModuleWidget {
 		}
 	};
 
+	struct ClockBufferItem : MenuItem {
+		char buffer[100];
+		PianoRollModule* module;
+		int value;
+		ClockBufferItem(PianoRollModule* module, int value) {
+			this->module = module;
+			this->value = value;
+
+			snprintf(buffer, 10, "%d", value);
+			text = buffer;
+			if (value == module->clockDelay) {
+				rightText = "✓";
+			}
+		}
+		void onAction(EventAction &e) override {
+			module->clockDelay = value;
+		}
+	};
+
 	void appendContextMenu(Menu* menu) override {
 		menu->addChild(MenuLabel::create(""));
 		menu->addChild(MenuLabel::create("Notes to Show"));
@@ -655,6 +692,15 @@ struct PianoRollWidget : ModuleWidget {
 			menu->addChild(new NotesToShowItem(this, 36));
 			menu->addChild(new NotesToShowItem(this, 48));
 			menu->addChild(new NotesToShowItem(this, 60));
+		menu->addChild(MenuLabel::create(""));
+		menu->addChild(MenuLabel::create("Clock Delay (samples)"));
+			menu->addChild(new ClockBufferItem(module, 0));
+			menu->addChild(new ClockBufferItem(module, 1));
+			menu->addChild(new ClockBufferItem(module, 2));
+			menu->addChild(new ClockBufferItem(module, 4));
+			menu->addChild(new ClockBufferItem(module, 6));
+			menu->addChild(new ClockBufferItem(module, 8));
+			menu->addChild(new ClockBufferItem(module, 10));
 	}
 
 	Rect getRollArea() {

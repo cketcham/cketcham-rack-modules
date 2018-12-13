@@ -220,7 +220,22 @@ struct PianoRollModule : Module {
 		}
 
 		json_t *patternsJ = json_array();
+		int max = 0;
+		for (int i = 0; i < patternData.size(); i++) {
+			if (patternData[i].measures.size() > 0) {
+				max = i;
+			}
+		}
+
+
+		int i = 0;
 		for (const auto& pattern : patternData) {
+			if (i > max) {
+				break;
+			}
+
+			i++;
+
 			json_t *patternJ = json_object();
 			json_object_set_new(patternJ, "title", json_string(pattern.title.c_str()));
 			json_object_set_new(patternJ, "numberOfMeasures", json_integer(pattern.numberOfMeasures));

@@ -11,6 +11,12 @@ static const float MAX_GATE_DURATION = 2.0f;
 struct PianoRollWidget;
 struct PianoRollModule;
 
+enum CopyPasteState {
+	COPYREADY,
+	PATTERNLOADED,
+	MEASURELOADED
+};
+
 struct PatternWidget : LedDisplay {
 	/** Not owned */
 	PianoRollWidget *widget = NULL;
@@ -26,7 +32,6 @@ struct PatternWidget : LedDisplay {
 	LedDisplaySeparator *beatsPerMeasureSeparator;
 	LedDisplayChoice *divisionsPerBeatChoice;
 	LedDisplaySeparator *divisionsPerBeatSeparator;
-	LedDisplayChoice *tripletsChoice;
 	PatternWidget();
 	void step() override;
 };
@@ -50,6 +55,13 @@ struct Note {
 
 struct Measure {
 	std::vector<Note> notes;
+	void copyFrom(const Measure& source) {
+		notes.resize(0);
+
+		for (const auto& note : source.notes) {
+			notes.push_back(note);
+		}
+	}
 };
 
 struct Pattern {
@@ -61,6 +73,19 @@ struct Pattern {
 	bool triplets;
 
 	Pattern() : title(""), numberOfMeasures(1), beatsPerMeasure(4), divisionsPerBeat(4), triplets(false) { }
+
+	void copyFrom(const Pattern& source) {
+		title = source.title;
+		numberOfMeasures = source.numberOfMeasures;
+		beatsPerMeasure = source.beatsPerMeasure;
+		divisionsPerBeat = source.divisionsPerBeat;
+		triplets = source.triplets;
+
+		measures.resize(source.measures.size());
+		for (int i = 0; i < (int)source.measures.size(); i++) {
+			measures[i].copyFrom(source.measures[i]);
+		}
+	}
 };
 
 struct Key {
@@ -197,8 +222,12 @@ struct PianoRollModule : Module {
 	int previousStep = -1;
 	int auditionStep = -1;
 	bool retriggerAudition = false;
+
 	RingBuffer<float, 16> clockBuffer;
 	int clockDelay = 0;
+
+	Pattern copiedPattern;
+	Measure copiedMeasure;
 
 	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 		patternData.resize(64);
@@ -211,6 +240,28 @@ struct PianoRollModule : Module {
 		currentStep = -1;
 		patternData.resize(0);
 		patternData.resize(64);
+	}
+
+	void copyPattern(int sourcePattern) {
+		copiedPattern.copyFrom(patternData[sourcePattern]);
+	}
+
+	void pastePattern(int targetPattern) {
+		patternData[targetPattern].copyFrom(copiedPattern);
+	}
+
+	void copyMeasure(int sourcePattern, int sourceMeasure) {
+		if (patternData[sourcePattern].measures.size() > sourceMeasure) {
+		  copiedMeasure.copyFrom(patternData[sourcePattern].measures[sourceMeasure]);
+		}
+	}
+
+	void pasteMeasure(int targetPattern, int targetMeasure) {
+		if (patternData[targetPattern].measures.size() <= targetMeasure) {
+			patternData[targetPattern].measures.resize(targetMeasure + 1);
+		}
+
+		patternData[targetPattern].measures[targetMeasure].copyFrom(copiedMeasure);
 	}
 
 	json_t *toJson() override {
@@ -378,6 +429,7 @@ struct PianoRollModule : Module {
 			}
 		}
 
+		patternData.resize(64);
 	}
 
 	void setBeatsPerMeasure(int value) {
@@ -615,6 +667,7 @@ struct PianoRollWidget : ModuleWidget {
 	PianoRollModule* module;
 	TextField *patternNameField;
 	TextField *patternInfoField;
+	CopyPasteState state;
 
 	int notesToShow = 18;
 	int lowestDisplayNote = 4 * 12;
@@ -697,7 +750,88 @@ struct PianoRollWidget : ModuleWidget {
 		}
 	};
 
+	struct CopyPatternItem : MenuItem {
+		PianoRollWidget *widget = NULL;
+		PianoRollModule *module = NULL;
+		int type;
+		void onAction(EventAction &e) override {
+			module->copyPattern(module->currentPattern);
+			widget->state = PATTERNLOADED;
+		}
+	};
+	struct CopyMeasureItem : MenuItem {
+		PianoRollWidget *widget = NULL;
+		PianoRollModule *module = NULL;
+		void onAction(EventAction &e) override {
+			module->copyMeasure(module->currentPattern, widget->currentMeasure);
+			widget->state = MEASURELOADED;
+		}
+	};
+	struct PastePatternItem : MenuItem {
+		PianoRollWidget *widget = NULL;
+		PianoRollModule *module = NULL;
+		void onAction(EventAction &e) override {
+			module->pastePattern(module->currentPattern);
+		}
+	};
+	struct PasteMeasureItem : MenuItem {
+		PianoRollWidget *widget = NULL;
+		PianoRollModule *module = NULL;
+		void onAction(EventAction &e) override {
+			module->pasteMeasure(module->currentPattern, widget->currentMeasure);
+		}
+	};
+	struct CancelPasteItem : MenuItem {
+		PianoRollWidget *widget = NULL;
+		void onAction(EventAction &e) override {
+			widget->state = COPYREADY;
+		}
+	};
+
+
 	void appendContextMenu(Menu* menu) override {
+
+		menu->addChild(MenuLabel::create(""));
+		menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Copy / Paste"));
+
+		CopyPatternItem *copyPatternItem = new CopyPatternItem();
+		copyPatternItem->widget = this;
+		copyPatternItem->module = module;
+		copyPatternItem->text = "Copy Pattern";
+		menu->addChild(copyPatternItem);
+
+		CopyMeasureItem *copyMeasureItem = new CopyMeasureItem();
+		copyMeasureItem->widget = this;
+		copyMeasureItem->module = module;
+		copyMeasureItem->text = "Copy Measure";
+		menu->addChild(copyMeasureItem);
+
+		switch(state) {
+			case COPYREADY:
+				break;
+			case PATTERNLOADED:
+				{
+					PastePatternItem *pastePatternItem = new PastePatternItem();
+					pastePatternItem->widget = this;
+					pastePatternItem->module = module;
+					pastePatternItem->text = "Paste Pattern";
+					menu->addChild(pastePatternItem);
+				}
+				break;
+			case MEASURELOADED:
+				{
+					PasteMeasureItem *pasteMeasureItem = new PasteMeasureItem();
+					pasteMeasureItem->widget = this;
+					pasteMeasureItem->module = module;
+					pasteMeasureItem->text = "Paste Measure";
+					menu->addChild(pasteMeasureItem);
+				}
+				break;
+			default:
+				state = COPYREADY;
+				break;
+		}
+
 		menu->addChild(MenuLabel::create(""));
 		menu->addChild(MenuLabel::create("Notes to Show"));
 			menu->addChild(new NotesToShowItem(this, 12));
@@ -1492,40 +1626,6 @@ struct DivisionsPerBeatChoice : LedDisplayChoice {
 	}
 };
 
-struct TripletsItem : MenuItem {
-	PatternWidget *widget = NULL;
-	bool triplets;
-	void onAction(EventAction &e) override {
-		widget->module->setTriplets(triplets);
-	}
-};
-
-struct TripletsChoice : LedDisplayChoice {
-	PatternWidget *widget = NULL;
-
-	void onAction(EventAction &e) override {
-		Menu *menu = gScene->createMenu();
-		menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Triplets"));
-
-		TripletsItem *itemyes = new TripletsItem();
-		itemyes->widget = widget;
-		itemyes->triplets = true;
-		itemyes->text = stringf("yes");
-		itemyes->rightText = CHECKMARK(itemyes->triplets == widget->module->patternData[widget->module->currentPattern].triplets);
-		menu->addChild(itemyes);
-
-		TripletsItem *itemno = new TripletsItem();
-		itemno->widget = widget;
-		itemno->triplets = false;
-		itemno->text = stringf("no");
-		itemno->rightText = CHECKMARK(itemno->triplets == widget->module->patternData[widget->module->currentPattern].triplets);
-		menu->addChild(itemno);
-	}
-	void step() override {
-		text = widget->module->patternData[widget->module->currentPattern].triplets ? "y" : "n";
-	}
-};
-
 
 PatternWidget::PatternWidget() {
 
@@ -1570,16 +1670,6 @@ PatternWidget::PatternWidget() {
 	divisionsPerBeatChoice->widget = this;
 	addChild(divisionsPerBeatChoice);
 	this->divisionsPerBeatChoice = divisionsPerBeatChoice;
-
-	// this->divisionsPerBeatSeparator = Widget::create<LedDisplaySeparator>(pos);
-	// this->divisionsPerBeatSeparator->box.size.y = this->beatsPerMeasureChoice->box.size.y;
-	// addChild(this->divisionsPerBeatSeparator);
-
-	// TripletsChoice *tripletsChoice = Widget::create<TripletsChoice>(pos);
-	// tripletsChoice->widget = this;
-	// addChild(tripletsChoice);
-	// this->tripletsChoice = tripletsChoice;
-
 }
 
 void PatternWidget::step() {
@@ -1587,16 +1677,10 @@ void PatternWidget::step() {
 	this->patternSeparator->box.size.x = box.size.x;
 	this->measuresChoice->box.size.x = box.size.x;
 	this->measuresSeparator->box.size.x = box.size.x;
-	// this->beatsPerMeasureChoice->box.size.x = box.size.x / 3;
-	// this->beatsPerMeasureSeparator->box.pos.x = box.size.x / 3;
-	// this->divisionsPerBeatChoice->box.pos.x = box.size.x / 3;
-	// this->divisionsPerBeatChoice->box.size.x = box.size.x / 3;
-	// this->divisionsPerBeatSeparator->box.pos.x = box.size.x * (2.f/3.f);
-	// this->tripletsChoice->box.pos.x = box.size.x * (2.f/3.f);
-	// this->tripletsChoice->box.size.x = box.size.x / 3;
 	this->beatsPerMeasureChoice->box.size.x = box.size.x / 2;
 	this->beatsPerMeasureSeparator->box.pos.x = box.size.x / 2;
 	this->divisionsPerBeatChoice->box.pos.x = box.size.x / 2;
 	this->divisionsPerBeatChoice->box.size.x = box.size.x / 2;
+
 	LedDisplay::step();
 }

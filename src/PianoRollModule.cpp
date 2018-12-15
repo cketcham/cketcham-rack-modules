@@ -1583,7 +1583,7 @@ struct PatternChoice : LedDisplayChoice {
 
 	void onAction(EventAction &e) override {
 		if (widget->module->inputs[PianoRollModule::PATTERN_INPUT].active == false) {
-			Vec pos = gRackWidget->lastMousePos.minus(widget->box.pos);
+			Vec pos = gRackWidget->lastMousePos.minus(widget->widget->box.pos).minus(widget->box.pos);
 
 			if (pos.x < 20) {
 				widget->module->currentPattern = max(0, widget->module->currentPattern - 1);

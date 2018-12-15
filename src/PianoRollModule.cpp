@@ -1522,20 +1522,28 @@ struct PatternChoice : LedDisplayChoice {
 	PatternWidget *widget = NULL;
 
 	void onAction(EventAction &e) override {
-		Menu *menu = gScene->createMenu();
-		menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Pattern"));
+		Vec pos = gRackWidget->lastMousePos.minus(widget->box.pos);
 
-		for (int i = 0; i < 64; i++) {
-			PatternItem *item = new PatternItem();
-			item->widget = widget;
-			item->pattern = i;
-			item->text = stringf("%d/64", i+1);
-			item->rightText = CHECKMARK(item->pattern == widget->module->currentPattern);
-			menu->addChild(item);
+		if (pos.x < 20) {
+			widget->module->currentPattern = max(0, widget->module->currentPattern - 1);
+		} else if (pos.x > 67) {
+			widget->module->currentPattern = min(63, widget->module->currentPattern + 1);
+		} else {
+			Menu *menu = gScene->createMenu();
+			menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Pattern"));
+
+			for (int i = 0; i < 64; i++) {
+				PatternItem *item = new PatternItem();
+				item->widget = widget;
+				item->pattern = i;
+				item->text = stringf("%d/64", i+1);
+				item->rightText = CHECKMARK(item->pattern == widget->module->currentPattern);
+				menu->addChild(item);
+			}
 		}
 	}
 	void step() override {
-		text = stringf("Pattern %d", widget->module->currentPattern + 1);
+		text = stringf("- Ptrn %02d +", widget->module->currentPattern + 1);
 	}
 };
 

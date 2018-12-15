@@ -3,10 +3,12 @@
 #include "dsp/digital.hpp"
 #include "dsp/ringbuffer.hpp"
 #include <tuple>
+#include <limits>
 
 static const float VELOCITY_SENSITIVITY = 0.0015f;
 static const float KEYBOARDDRAG_SENSITIVITY = 0.1f;
-static const float MAX_GATE_DURATION = 2.0f;
+static const float PLUGGED_GATE_DURATION = std::numeric_limits<float>::max();
+static const float UNPLUGGED_GATE_DURATION = 2.0f;
 
 struct PianoRollWidget;
 struct PianoRollModule;
@@ -32,8 +34,8 @@ struct PatternWidget : LedDisplay {
 	LedDisplaySeparator *beatsPerMeasureSeparator;
 	LedDisplayChoice *divisionsPerBeatChoice;
 	LedDisplaySeparator *divisionsPerBeatSeparator;
+	LedDisplayChoice *sequenceRunningChoice;
 	PatternWidget();
-	void step() override;
 };
 
 
@@ -174,6 +176,19 @@ struct StandardModuleDragging : public ModuleDragType {
 	void onDragMove(EventDragMove& e) override;
 };
 
+template <typename T>
+struct ValueChangeTrigger {
+	T value;
+	bool changed;
+
+	ValueChangeTrigger(T initialValue) : value(initialValue), changed(false) { }
+
+	bool process(T newValue) {
+		changed = value != newValue;
+		value = newValue;
+		return changed;
+	}
+};
 
 struct PianoRollModule : Module {
 	enum ParamIds {
@@ -186,7 +201,7 @@ struct PianoRollModule : Module {
 		RUN_INPUT,
 		RESET_INPUT,
 		PATTERN_INPUT,
-		RECORD_INPUT,
+		STARTSTOP_INPUT,
 		VOCT_INPUT,
 		GATE_INPUT,
 		RETRIGGER_INPUT,
@@ -215,6 +230,7 @@ struct PianoRollModule : Module {
 	std::vector<Pattern> patternData;
 	SchmittTrigger clockIn;
 	SchmittTrigger resetIn;
+	SchmittTrigger startStopIn;
 	int currentStep = -1;
 	PulseGenerator retriggerOut;
 	PulseGenerator eopOut;
@@ -223,13 +239,15 @@ struct PianoRollModule : Module {
 	int auditionStep = -1;
 	bool retriggerAudition = false;
 
+	ValueChangeTrigger<bool> startStopPlugged;
+	bool sequenceRunning = true;
 	RingBuffer<float, 16> clockBuffer;
 	int clockDelay = 0;
 
 	Pattern copiedPattern;
 	Measure copiedMeasure;
 
-	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS), startStopPlugged(false) {
 		patternData.resize(64);
 	}
 
@@ -324,12 +342,18 @@ struct PianoRollModule : Module {
 		json_object_set_new(rootJ, "currentPattern", json_integer(currentPattern));
 		json_object_set_new(rootJ, "currentStep", json_integer(currentStep));
 		json_object_set_new(rootJ, "clockDelay", json_integer(clockDelay));
+		json_object_set_new(rootJ, "sequenceRunning", json_boolean(sequenceRunning));
 
 		return rootJ;
 	}
 
 	void fromJson(json_t *rootJ) override {
 		Module::fromJson(rootJ);
+
+		json_t *sequenceRunningJ = json_object_get(rootJ, "sequenceRunning");
+		if (sequenceRunningJ) {
+			sequenceRunning = json_boolean_value(sequenceRunningJ);
+		}
 
 		json_t *currentStepJ = json_object_get(rootJ, "currentStep");
 		if (currentStepJ) {
@@ -615,6 +639,43 @@ void PianoRollModule::step() {
 		clockTick = clockIn.process(clockBuffer.shift());
 	}
 
+	startStopPlugged.process(inputs[STARTSTOP_INPUT].active);
+
+	if (startStopPlugged.changed && sequenceRunning) {
+		if (startStopPlugged.value == true) {
+			bool triggerGateAgain = gateOut.process(0);
+			gateOut.reset();
+			if (triggerGateAgain) {
+				// We've plugged in, the sequence is running and our gate is high
+				// Trigger the gate for the full plugged in duration (forever)
+				gateOut.trigger(PLUGGED_GATE_DURATION);
+			}
+		}
+
+		if (startStopPlugged.value == false) {
+			float gateTimeRemaining = UNPLUGGED_GATE_DURATION - gateOut.time;
+			bool triggerGateAgain = gateOut.process(0) && gateTimeRemaining > 0;
+			gateOut.reset();
+			if (triggerGateAgain) {
+				// We've unplugged and the sequence is running and the gate is high
+				// retrigger it for the time remaining if it had been triggered
+				// when the cable was already unplugged. This is to prevent the gate sounding
+				// forever - even when the clock is stopped
+				gateOut.trigger(gateTimeRemaining);
+			}
+		}
+	}
+
+	if (startStopIn.process(inputs[STARTSTOP_INPUT].value)) {
+		sequenceRunning = !sequenceRunning;
+	}
+
+	// The effect of stopping the sequence is to stop processing clock ticks and to drop the gate
+	if (!sequenceRunning) {
+		clockTick = false;
+		gateOut.reset();
+	}
+
 	if (clockTick) {
 		currentStep = (currentStep + 1) % (getDivisionsPerMeasure() * patternData[currentPattern].numberOfMeasures);
 	}
@@ -644,7 +705,7 @@ void PianoRollModule::step() {
 				retriggerOut.trigger(1e-3f);
 			}
 
-			gateOut.trigger(MAX_GATE_DURATION);
+			gateOut.trigger(startStopPlugged.value ? PLUGGED_GATE_DURATION : UNPLUGGED_GATE_DURATION);
 			outputs[VELOCITY_OUTPUT].value = patternData[currentPattern].measures[measure].notes[noteInMeasure].velocity * 10.f;
 			float octave = patternData[currentPattern].measures[measure].notes[noteInMeasure].pitch / 12;
 			float semitone = patternData[currentPattern].measures[measure].notes[noteInMeasure].pitch % 12;
@@ -686,7 +747,7 @@ struct PianoRollWidget : ModuleWidget {
 		addInput(Port::create<PJ301MPort>(Vec(50.114, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::CLOCK_INPUT));
 		addInput(Port::create<PJ301MPort>(Vec(85.642, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RESET_INPUT));
 		addInput(Port::create<PJ301MPort>(Vec(121.170, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::PATTERN_INPUT));
-		//addInput(Port::create<PJ301MPort>(Vec(156.697, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RECORD_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(156.697, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::STARTSTOP_INPUT));
 
 		// addInput(Port::create<PJ301MPort>(Vec(456.921, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::VOCT_INPUT));
 		// addInput(Port::create<PJ301MPort>(Vec(492.448, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::GATE_INPUT));
@@ -706,7 +767,6 @@ struct PianoRollWidget : ModuleWidget {
 		addOutput(Port::create<PJ301MPort>(Vec(563.503, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::END_OF_PATTERN_OUTPUT));
 
 		PatternWidget* patternWidget = Widget::create<PatternWidget>(Vec(505.257, 380.f-224.259-125.586));
-		patternWidget->box.size = Vec(86.863, 80);
 		patternWidget->module = module;
 		patternWidget->widget = this;
 		addChild(patternWidget);
@@ -845,9 +905,9 @@ struct PianoRollWidget : ModuleWidget {
 			menu->addChild(new ClockBufferItem(module, 0));
 			menu->addChild(new ClockBufferItem(module, 1));
 			menu->addChild(new ClockBufferItem(module, 2));
+			menu->addChild(new ClockBufferItem(module, 3));
 			menu->addChild(new ClockBufferItem(module, 4));
-			menu->addChild(new ClockBufferItem(module, 6));
-			menu->addChild(new ClockBufferItem(module, 8));
+			menu->addChild(new ClockBufferItem(module, 5));
 			menu->addChild(new ClockBufferItem(module, 10));
 	}
 
@@ -1634,6 +1694,20 @@ struct DivisionsPerBeatChoice : LedDisplayChoice {
 	}
 };
 
+struct SequenceRunningChoice : LedDisplayChoice {
+	PatternWidget *widget = NULL;
+
+	void onAction(EventAction &e) override {
+		widget->module->sequenceRunning = !(widget->module->sequenceRunning);
+	}
+	void step() override {
+		if (widget->module->sequenceRunning) {
+			text = "Running";
+		} else {
+			text = "Paused";
+		}
+	}
+};
 
 PatternWidget::PatternWidget() {
 
@@ -1678,9 +1752,19 @@ PatternWidget::PatternWidget() {
 	divisionsPerBeatChoice->widget = this;
 	addChild(divisionsPerBeatChoice);
 	this->divisionsPerBeatChoice = divisionsPerBeatChoice;
-}
+	pos = divisionsPerBeatChoice->box.getBottomLeft();
 
-void PatternWidget::step() {
+	this->divisionsPerBeatSeparator = Widget::create<LedDisplaySeparator>(pos);
+	addChild(this->divisionsPerBeatSeparator);
+
+	SequenceRunningChoice *sequenceRunningChoice = Widget::create<SequenceRunningChoice>(pos);
+	sequenceRunningChoice->widget = this;
+	addChild(sequenceRunningChoice);
+	this->sequenceRunningChoice = sequenceRunningChoice;
+	pos = sequenceRunningChoice->box.getBottomLeft();
+
+	box.size = Vec(86.863, pos.y);
+
 	this->patternChoice->box.size.x = box.size.x;
 	this->patternSeparator->box.size.x = box.size.x;
 	this->measuresChoice->box.size.x = box.size.x;
@@ -1689,6 +1773,6 @@ void PatternWidget::step() {
 	this->beatsPerMeasureSeparator->box.pos.x = box.size.x / 2;
 	this->divisionsPerBeatChoice->box.pos.x = box.size.x / 2;
 	this->divisionsPerBeatChoice->box.size.x = box.size.x / 2;
-
-	LedDisplay::step();
+	this->divisionsPerBeatSeparator->box.size.x = box.size.x;
+	this->sequenceRunningChoice->box.size.x = box.size.x;
 }

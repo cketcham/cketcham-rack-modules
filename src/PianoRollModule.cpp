@@ -1582,23 +1582,25 @@ struct PatternChoice : LedDisplayChoice {
 	PatternWidget *widget = NULL;
 
 	void onAction(EventAction &e) override {
-		Vec pos = gRackWidget->lastMousePos.minus(widget->box.pos);
+		if (widget->module->inputs[PianoRollModule::PATTERN_INPUT].active == false) {
+			Vec pos = gRackWidget->lastMousePos.minus(widget->box.pos);
 
-		if (pos.x < 20) {
-			widget->module->currentPattern = max(0, widget->module->currentPattern - 1);
-		} else if (pos.x > 67) {
-			widget->module->currentPattern = min(63, widget->module->currentPattern + 1);
-		} else {
-			Menu *menu = gScene->createMenu();
-			menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Pattern"));
+			if (pos.x < 20) {
+				widget->module->currentPattern = max(0, widget->module->currentPattern - 1);
+			} else if (pos.x > 67) {
+				widget->module->currentPattern = min(63, widget->module->currentPattern + 1);
+			} else {
+				Menu *menu = gScene->createMenu();
+				menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Pattern"));
 
-			for (int i = 0; i < 64; i++) {
-				PatternItem *item = new PatternItem();
-				item->widget = widget;
-				item->pattern = i;
-				item->text = stringf("%d/64", i+1);
-				item->rightText = CHECKMARK(item->pattern == widget->module->currentPattern);
-				menu->addChild(item);
+				for (int i = 0; i < 64; i++) {
+					PatternItem *item = new PatternItem();
+					item->widget = widget;
+					item->pattern = i;
+					item->text = stringf("%d/64", i+1);
+					item->rightText = CHECKMARK(item->pattern == widget->module->currentPattern);
+					menu->addChild(item);
+				}
 			}
 		}
 	}

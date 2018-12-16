@@ -282,13 +282,13 @@ struct PianoRollModule : Module {
 	}
 
 	void copyMeasure(int sourcePattern, int sourceMeasure) {
-		if (patternData[sourcePattern].measures.size() > sourceMeasure) {
+		if ((int)patternData[sourcePattern].measures.size() > sourceMeasure) {
 		  copiedMeasure.copyFrom(patternData[sourcePattern].measures[sourceMeasure]);
 		}
 	}
 
 	void pasteMeasure(int targetPattern, int targetMeasure) {
-		if (patternData[targetPattern].measures.size() <= targetMeasure) {
+		if ((int)patternData[targetPattern].measures.size() <= targetMeasure) {
 			patternData[targetPattern].measures.resize(targetMeasure + 1);
 		}
 

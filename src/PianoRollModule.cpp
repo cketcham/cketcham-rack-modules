@@ -145,6 +145,14 @@ struct PlayPositionDragging : public ModuleDragType {
 	void onDragMove(EventDragMove& e) override;
 };
 
+struct LockMeasureDragging : public ModuleDragType {
+	std::chrono::_V2::system_clock::time_point longPressStart;
+	LockMeasureDragging(PianoRollWidget* widget, PianoRollModule* module);
+	~LockMeasureDragging();
+
+	void onDragMove(EventDragMove& e) override;
+};
+
 struct KeyboardDragging : public ModuleDragType {
 	float offset = 0;
 
@@ -256,6 +264,7 @@ struct PianoRollModule : Module {
 	bool sequenceRunning = true;
 	RingBuffer<float, 16> clockBuffer;
 	int clockDelay = 0;
+	bool measureLock = false;
 
 	Pattern copiedPattern;
 	Measure copiedMeasure;
@@ -690,7 +699,16 @@ void PianoRollModule::step() {
 	}
 
 	if (clockTick) {
+		int previousMeasure = currentStep / getDivisionsPerMeasure();
 		currentStep = (currentStep + 1) % (getDivisionsPerMeasure() * patternData[currentPattern].numberOfMeasures);
+		int newMeasure = currentStep / getDivisionsPerMeasure();
+
+		if (previousMeasure != newMeasure && measureLock) {
+			currentStep = currentStep - getDivisionsPerMeasure();
+			if (currentStep < 0) {
+				currentStep += getDivisionsPerMeasure() * patternData[currentPattern].numberOfMeasures;				
+			}
+		}
 	}
 
 	int playingStep = currentStep;
@@ -753,6 +771,8 @@ struct PianoRollWidget : ModuleWidget {
 	int lastDrawnStep = -1;
 	float displayVelocityHigh = -1;
 	float displayVelocityLow = -1;
+
+	double measureLockPressTime = 0.f;
 
 	ModuleDragType *currentDragType = NULL;
 
@@ -1242,13 +1262,33 @@ struct PianoRollWidget : ModuleWidget {
 		float boxHeight = topMargins * 0.75;
 
 		for (int i = 0; i < numberOfMeasures; i++) {
+			bool drawingCurrentMeasure = i == currentMeasure;
 			nvgBeginPath(ctx);
-			nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.f));
+			nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 0.1f));
 			nvgStrokeWidth(ctx, 1.f);
-			nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, i == currentMeasure ? 1.f : 0.25f));
+			nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, drawingCurrentMeasure ? 1.f : 0.25f));
 			nvgRect(ctx, roll.pos.x + i * widthPerMeasure, roll.pos.y + roll.size.y - boxHeight, widthPerMeasure, boxHeight);
 			nvgStroke(ctx);
 			nvgFill(ctx);
+
+			if (drawingCurrentMeasure && measureLockPressTime > 0.5f) {
+				float barHeight = boxHeight * rescale(clamp(measureLockPressTime, 0.f, 1.f), 0.5f, 1.f, 0.f, 1.f);
+				nvgBeginPath(ctx);
+				nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.f));
+				nvgStrokeWidth(ctx, 0.f);
+				nvgFillColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 1.f));
+				nvgRect(ctx, roll.pos.x + i * widthPerMeasure, roll.pos.y + roll.size.y - barHeight, widthPerMeasure, barHeight);
+				nvgStroke(ctx);
+				nvgFill(ctx);
+			}
+		}
+
+		if (module->measureLock) {
+			nvgBeginPath(ctx);
+			nvgStrokeColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 1.f));
+			nvgStrokeWidth(ctx, 2.f);
+			nvgRect(ctx, roll.pos.x, roll.pos.y + roll.size.y - boxHeight, roll.size.x, boxHeight);
+			nvgStroke(ctx);
 		}
 	}
 
@@ -1384,6 +1424,7 @@ struct PianoRollWidget : ModuleWidget {
 		} else if (e.button == 0 && std::get<0>(measureSwitch)) {
 			this->currentMeasure = std::get<1>(measureSwitch);
 			lastDrawnStep = module->currentStep;
+			ModuleWidget::onMouseDown(e); // Allow drag operations to start on the measure
 		} else {
 			ModuleWidget::onMouseDown(e);
 		}
@@ -1392,6 +1433,7 @@ struct PianoRollWidget : ModuleWidget {
 	void onDragStart(EventDragStart& e) override {
 		Vec pos = gRackWidget->lastMousePos.minus(box.pos);
 		std::tuple<bool, BeatDiv, Key> cell = findCell(pos);
+		std::tuple<bool, int> measureSwitch = findMeasure(pos);
 
 		Rect roll = getRollArea();
 		Rect keysArea = reserveKeysArea(roll);
@@ -1410,6 +1452,8 @@ struct PianoRollWidget : ModuleWidget {
 			currentDragType = new PlayPositionDragging(this, module);
 		} else if (inPianoRollLogo && windowIsShiftPressed()) {
 			currentDragType = new ColourDragging(this, module);
+		} else if (std::get<0>(measureSwitch)) {
+			currentDragType = new LockMeasureDragging(this, module);
 		} else {
 			currentDragType = new StandardModuleDragging(this, module);
 		}
@@ -1526,6 +1570,32 @@ void PlayPositionDragging::onDragMove(EventDragMove& e) {
 			module->auditionStep = -1;
 		}
 
+}
+
+
+LockMeasureDragging::LockMeasureDragging(PianoRollWidget* widget, PianoRollModule* module): ModuleDragType(widget, module) {
+	longPressStart = std::chrono::high_resolution_clock::now();
+	widget->measureLockPressTime = 0.f;
+}
+
+LockMeasureDragging::~LockMeasureDragging() {
+	widget->measureLockPressTime = 0.f;
+}
+
+void LockMeasureDragging::onDragMove(EventDragMove &e) {
+	auto currTime = std::chrono::high_resolution_clock::now();
+	double pressTime = std::chrono::duration<double>(currTime - longPressStart).count();
+	widget->measureLockPressTime = clamp(pressTime, 0.f, 1.f);
+	if (pressTime >= 1.f) {
+		module->measureLock = !module->measureLock;
+
+		if (module->measureLock && (module->currentStep / module->getDivisionsPerMeasure()) != widget->currentMeasure) {
+			// We just locked the measure, but the play point is outside the selected measure - move the play point into the last note of the current measure
+			module->currentStep = (module->getDivisionsPerMeasure() * widget->currentMeasure) + (module->getDivisionsPerMeasure() - 1);
+		}
+
+		longPressStart = std::chrono::high_resolution_clock::now();
+	}
 }
 
 void ColourDragging::onDragMove(EventDragMove& e) {
@@ -1761,10 +1831,18 @@ struct SequenceRunningChoice : LedDisplayChoice {
 		widget->module->sequenceRunning = !(widget->module->sequenceRunning);
 	}
 	void step() override {
-		if (widget->module->sequenceRunning) {
-			text = "Running";
+		if (widget->module->measureLock) {
+			if (widget->module->sequenceRunning) {
+				text = "§ Running";
+			} else {
+				text = "§ Paused";
+			}
 		} else {
-			text = "Paused";
+			if (widget->module->sequenceRunning) {
+				text = "Running";
+			} else {
+				text = "Paused";
+			}
 		}
 	}
 };

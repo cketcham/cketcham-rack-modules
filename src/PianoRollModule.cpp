@@ -7,6 +7,7 @@
 
 static const float VELOCITY_SENSITIVITY = 0.0015f;
 static const float KEYBOARDDRAG_SENSITIVITY = 0.1f;
+static const float COLOURDRAG_SENSITIVITY = 0.0015f;
 static const float PLUGGED_GATE_DURATION = std::numeric_limits<float>::max();
 static const float UNPLUGGED_GATE_DURATION = 2.0f;
 
@@ -123,6 +124,18 @@ struct ModuleDragType {
 	virtual ~ModuleDragType() {}
 
 	virtual void onDragMove(EventDragMove& e) = 0;
+};
+
+struct ColourDragging : public ModuleDragType {
+	ColourDragging(PianoRollWidget* widget, PianoRollModule* module) : ModuleDragType(widget, module) {
+		windowCursorLock();
+	}
+
+	~ColourDragging() {
+		windowCursorUnlock();
+	}
+
+	void onDragMove(EventDragMove& e) override;
 };
 
 struct PlayPositionDragging : public ModuleDragType {
@@ -729,6 +742,9 @@ struct PianoRollWidget : ModuleWidget {
 	TextField *patternNameField;
 	TextField *patternInfoField;
 	CopyPasteState state;
+	float backgroundHue = 0.5f;
+	float backgroundSaturation = 1.f;
+	float backgroundLuminosity = 0.25f;
 
 	int notesToShow = 18;
 	int lowestDisplayNote = 4 * 12;
@@ -1312,9 +1328,18 @@ struct PianoRollWidget : ModuleWidget {
 		}
 	}
 
+	void drawBackgroundColour(NVGcontext* ctx) {
+			nvgBeginPath(ctx);
+			nvgFillColor(ctx, nvgHSL(backgroundHue, backgroundSaturation, backgroundLuminosity));
+			nvgRect(ctx, 0, 0, box.size.x, box.size.y);
+			nvgFill(ctx);
+	}
+
 	// Event Handlers
 
 	void draw(NVGcontext* ctx) override {
+		drawBackgroundColour(ctx);
+
 		ModuleWidget::draw(ctx);
 
 		Rect roll = getRollArea();
@@ -1371,6 +1396,7 @@ struct PianoRollWidget : ModuleWidget {
 		Rect roll = getRollArea();
 		Rect keysArea = reserveKeysArea(roll);
 		bool inKeysArea = keysArea.contains(pos);
+		bool inPianoRollLogo = Rect(Vec(506, 10), Vec(85, 13)).contains(pos);
 
 		Rect playDragArea(Vec(roll.pos.x, roll.pos.y), Vec(roll.size.x, topMargins));
 
@@ -1382,6 +1408,8 @@ struct PianoRollWidget : ModuleWidget {
 			currentDragType = new KeyboardDragging(this, module);
 		} else if (playDragArea.contains(pos)) {
 			currentDragType = new PlayPositionDragging(this, module);
+		} else if (inPianoRollLogo && windowIsShiftPressed()) {
+			currentDragType = new ColourDragging(this, module);
 		} else {
 			currentDragType = new StandardModuleDragging(this, module);
 		}
@@ -1415,6 +1443,9 @@ struct PianoRollWidget : ModuleWidget {
 		json_object_set_new(rootJ, "lowestDisplayNote", json_integer(this->lowestDisplayNote));
 		json_object_set_new(rootJ, "notesToShow", json_integer(this->notesToShow));
 		json_object_set_new(rootJ, "currentMeasure", json_integer(this->currentMeasure));
+		json_object_set_new(rootJ, "backgroundHue", json_real(this->backgroundHue));
+		json_object_set_new(rootJ, "backgroundSaturation", json_real(this->backgroundSaturation));
+		json_object_set_new(rootJ, "backgroundLuminosity", json_real(this->backgroundLuminosity));
 		return rootJ;
 	}
 
@@ -1434,6 +1465,21 @@ struct PianoRollWidget : ModuleWidget {
 		json_t *currentMeasureJ = json_object_get(rootJ, "currentMeasure");
 		if (currentMeasureJ) {
 			currentMeasure = json_integer_value(currentMeasureJ);
+		}
+
+		json_t *backgroundHueJ = json_object_get(rootJ, "backgroundHue");
+		if (backgroundHueJ) {
+			backgroundHue = json_real_value(backgroundHueJ);
+		}
+
+		json_t *backgroundSaturationJ = json_object_get(rootJ, "backgroundSaturation");
+		if (backgroundSaturationJ) {
+			backgroundSaturation = json_real_value(backgroundSaturationJ);
+		}
+
+		json_t *backgroundLuminosityJ = json_object_get(rootJ, "backgroundLuminosity");
+		if (backgroundLuminosityJ) {
+			backgroundLuminosity = json_real_value(backgroundLuminosityJ);
 		}
 	}
 
@@ -1480,6 +1526,18 @@ void PlayPositionDragging::onDragMove(EventDragMove& e) {
 			module->auditionStep = -1;
 		}
 
+}
+
+void ColourDragging::onDragMove(EventDragMove& e) {
+	float speed = 1.f;
+	float range = 1.f;
+
+	float delta = COLOURDRAG_SENSITIVITY * e.mouseRel.y * speed * range;
+	if (windowIsModPressed()) {
+		delta /= 16.f;
+	}
+
+	widget->backgroundHue = clamp(widget->backgroundHue + delta, 0.f, 1.f);
 }
 
 void KeyboardDragging::onDragMove(EventDragMove& e) {

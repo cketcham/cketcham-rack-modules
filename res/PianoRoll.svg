@@ -4086,7 +4086,7 @@
      inkscape:groupmode="layer"
      id="layer5"
      inkscape:label="Colour"
-     style="display:inline">
+     style="display:none">
     <path
        transform="translate(0,-196.4583)"
        style="display:inline;opacity:1;vector-effect:none;fill:#008080;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.25502944;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal;filter:url(#filter6152);enable-background:new"

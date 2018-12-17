@@ -1858,13 +1858,6 @@ void StandardModuleDragging::onDragMove(EventDragMove& e) {
 	widget->baseDragMove(e);
 }
 
-
-// Specify the Module and ModuleWidget subclass, human-readable
-// author name for categorization per plugin, module slug (should never
-// change), human-readable module name, and any number of tags
-// (found in `include/tags.hpp`) separated by commas.
-Model *modelPianoRollModule = Model::create<PianoRollModule, PianoRollWidget>("rcm", "rcm-pianoroll", "Piano Roll", SEQUENCER_TAG);
-
 struct PatternItem : MenuItem {
 	PatternWidget *widget = NULL;
 	int pattern;
@@ -2104,3 +2097,9 @@ PatternWidget::PatternWidget() {
 	this->divisionsPerBeatSeparator->box.size.x = box.size.x;
 	this->sequenceRunningChoice->box.size.x = box.size.x;
 }
+
+// Specify the Module and ModuleWidget subclass, human-readable
+// author name for categorization per plugin, module slug (should never
+// change), human-readable module name, and any number of tags
+// (found in `include/tags.hpp`) separated by commas.
+Model *modelPianoRollModule = Model::create<PianoRollModule, PianoRollWidget>("rcm", "rcm-pianoroll", "Piano Roll", SEQUENCER_TAG);

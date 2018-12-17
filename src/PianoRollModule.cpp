@@ -1884,13 +1884,13 @@ struct PatternChoice : LedDisplayChoice {
 			Vec pos = gRackWidget->lastMousePos.minus(widget->widget->box.pos).minus(widget->box.pos);
 
 			if (pos.x < 20) {
-				int newPattern = max(0, widget->module->currentPattern - 1);
+				int newPattern = clamp(widget->module->currentPattern - 1, 0, 63);
 				if (newPattern != widget->module->currentPattern) {
 					widget->module->currentPattern = newPattern;
 					widget->module->currentStep = -1;
 				}
 			} else if (pos.x > 67) {
-				int newPattern = max(0, widget->module->currentPattern + 1);
+				int newPattern = clamp(widget->module->currentPattern + 1, 0, 63);
 				if (newPattern != widget->module->currentPattern) {
 					widget->module->currentPattern = newPattern;
 					widget->module->currentStep = -1;

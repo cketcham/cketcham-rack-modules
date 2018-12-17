@@ -223,6 +223,7 @@ struct PianoRollModule : Module {
 		RESET_INPUT,
 		PATTERN_INPUT,
 		STARTSTOP_INPUT,
+		RECORD_INPUT,
 		VOCT_INPUT,
 		GATE_INPUT,
 		RETRIGGER_INPUT,
@@ -268,6 +269,14 @@ struct PianoRollModule : Module {
 
 	Pattern copiedPattern;
 	Measure copiedMeasure;
+
+	SchmittTrigger recordingIn;
+	bool recordingPending = false;
+	bool recording = false;
+	RingBuffer<float, 128> voctInBuffer;
+	RingBuffer<float, 128> gateInBuffer;
+	RingBuffer<float, 128> retriggerInBuffer;
+	RingBuffer<float, 128> velocityInBuffer;
 
 	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS), startStopPlugged(false) {
 		patternData.resize(64);
@@ -634,6 +643,13 @@ struct PianoRollModule : Module {
 	}
 };
 
+int quantizePitch(float voct) {
+	int oct = floor(voct);
+	int note = floor((voct - oct) * 12);
+
+	return ((oct + 4) * 12) + note;
+}
+
 void PianoRollModule::step() {
 	if (resetIn.process(inputs[RESET_INPUT].value)) {
 		currentStep = -1;
@@ -648,6 +664,14 @@ void PianoRollModule::step() {
 			currentPattern = nextPattern;
 			currentStep = -1;
 			previousStep = -1;
+		}
+	}
+
+	if (recordingIn.process(inputs[RECORD_INPUT].value)) {
+		if (recording) {
+			recording = false;
+		} else {
+			recordingPending = !recordingPending;
 		}
 	}
 
@@ -690,12 +714,15 @@ void PianoRollModule::step() {
 
 	if (startStopIn.process(inputs[STARTSTOP_INPUT].value)) {
 		sequenceRunning = !sequenceRunning;
+
+		if (!sequenceRunning) {
+			gateOut.reset();
+		}
 	}
 
 	// The effect of stopping the sequence is to stop processing clock ticks and to drop the gate
 	if (!sequenceRunning) {
 		clockTick = false;
-		gateOut.reset();
 	}
 
 	if (clockTick) {
@@ -717,7 +744,105 @@ void PianoRollModule::step() {
 		playingStep = auditionStep;
 	}
 
-	if (playingStep > -1 && (previousStep != playingStep || retriggerAudition)) {
+	if (recording == true) {
+		int triggerStep = 0;
+		if (measureLock && currentStep > -1) {
+			int measure = currentStep / getDivisionsPerMeasure();
+			triggerStep = measure * getDivisionsPerMeasure();
+		}
+
+		if (currentStep == triggerStep && currentStep != previousStep) {
+			recordingPending = false;
+			recording = false;
+
+			voctInBuffer.clear();
+			gateInBuffer.clear();
+			retriggerInBuffer.clear();
+			velocityInBuffer.clear();
+
+			gateOut.reset();
+			retriggerOut.reset();
+		}
+	}
+
+
+	if (recordingPending == true) {
+		int triggerStep = 0;
+		if (measureLock && currentStep > -1) {
+			int measure = currentStep / getDivisionsPerMeasure();
+			triggerStep = measure * getDivisionsPerMeasure();
+		}
+		if (currentStep == triggerStep && currentStep != previousStep) {
+			recordingPending = false;
+			recording = true;
+		}
+	}
+
+	if (recording == true) {
+		previousStep = currentStep;
+
+		while (!voctInBuffer.full()) { voctInBuffer.push(inputs[VOCT_INPUT].value); }
+		while (!gateInBuffer.full()) { gateInBuffer.push(inputs[GATE_INPUT].value); }
+		while (!retriggerInBuffer.full()) { retriggerInBuffer.push(inputs[RETRIGGER_INPUT].value); }
+		while (!velocityInBuffer.full()) { velocityInBuffer.push(inputs[VELOCITY_INPUT].value); }
+
+		int measure = playingStep / getDivisionsPerMeasure();
+		int noteInMeasure = playingStep % getDivisionsPerMeasure();
+
+		if ((int)patternData[currentPattern].measures.size() <= measure) {
+			patternData[currentPattern].measures.resize(measure + 1);
+		}
+
+		if ((int)patternData[currentPattern].measures[measure].notes.size() <= noteInMeasure) {
+			patternData[currentPattern].measures[measure].notes.resize(noteInMeasure + 1);
+		}
+
+		if (inputs[VOCT_INPUT].active) {
+			auto voctIn = voctInBuffer.shift();
+			patternData[currentPattern].measures[measure].notes[noteInMeasure].pitch = quantizePitch(voctIn);
+		}
+
+		if (inputs[GATE_INPUT].active) {
+			auto gateIn = gateInBuffer.shift();
+
+			if (clockTick && gateIn < 0.1f) {
+				patternData[currentPattern].measures[measure].notes[noteInMeasure].active = false;
+			}
+			
+			if (gateIn >= 1.f && patternData[currentPattern].measures[measure].notes[noteInMeasure].active == false) {
+				patternData[currentPattern].measures[measure].notes[noteInMeasure].active = true;
+			}
+		}
+
+		if (inputs[RETRIGGER_INPUT].active) {
+			auto retriggerIn = retriggerInBuffer.shift();
+
+			if (clockTick && retriggerIn < 0.1f) {
+				patternData[currentPattern].measures[measure].notes[noteInMeasure].retrigger = false;
+			}
+			
+			if (retriggerIn >= 1.f && patternData[currentPattern].measures[measure].notes[noteInMeasure].retrigger == false) {
+				patternData[currentPattern].measures[measure].notes[noteInMeasure].retrigger = true;
+			}
+		}
+
+		if (inputs[VELOCITY_INPUT].active) {
+			auto velocityIn = velocityInBuffer.shift();
+
+			if (clockTick) {
+				patternData[currentPattern].measures[measure].notes[noteInMeasure].velocity = 0.f;
+			}
+			
+			if (velocityIn > 0.f) {
+				auto velocity = patternData[currentPattern].measures[measure].notes[noteInMeasure].velocity;
+				velocity = max(velocity, rescale(velocityIn, 0.f, 10.f, 0.f, 1.f));
+				patternData[currentPattern].measures[measure].notes[noteInMeasure].velocity = velocity;
+			}
+		}
+
+	}
+
+	if (!recording && playingStep > -1 && (previousStep != playingStep || retriggerAudition)) {
 		previousStep = playingStep;
 		retriggerAudition = false;
 
@@ -753,6 +878,19 @@ void PianoRollModule::step() {
 		outputs[GATE_OUTPUT].value = 0.f;
 	}
 	outputs[END_OF_PATTERN_OUTPUT].value = eopOut.process(engineGetSampleTime()) ? 10.f : 0.f;
+
+	if (inputs[GATE_INPUT].active && inputs[GATE_INPUT].value > 1.f) {
+		if (inputs[VOCT_INPUT].active) { outputs[VOCT_OUTPUT].value = inputs[VOCT_INPUT].value; }
+		if (inputs[GATE_INPUT].active) { 
+			if (outputs[RETRIGGER_OUTPUT].active == false && inputs[RETRIGGER_INPUT].active) {
+				outputs[GATE_OUTPUT].value = inputs[GATE_INPUT].value - inputs[RETRIGGER_INPUT].value;
+			} else {
+				outputs[GATE_OUTPUT].value = inputs[GATE_INPUT].value;
+			}
+		}
+		if (inputs[RETRIGGER_INPUT].active) { outputs[RETRIGGER_OUTPUT].value = inputs[RETRIGGER_INPUT].value; }
+		if (inputs[VELOCITY_INPUT].active) { outputs[VELOCITY_OUTPUT].value = inputs[VELOCITY_INPUT].value; }
+	}
 }
 
 struct PianoRollWidget : ModuleWidget {
@@ -784,11 +922,12 @@ struct PianoRollWidget : ModuleWidget {
 		addInput(Port::create<PJ301MPort>(Vec(85.642, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RESET_INPUT));
 		addInput(Port::create<PJ301MPort>(Vec(121.170, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::PATTERN_INPUT));
 		addInput(Port::create<PJ301MPort>(Vec(156.697, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::STARTSTOP_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(192.224, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RECORD_INPUT));
 
-		// addInput(Port::create<PJ301MPort>(Vec(456.921, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::VOCT_INPUT));
-		// addInput(Port::create<PJ301MPort>(Vec(492.448, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::GATE_INPUT));
-		// addInput(Port::create<PJ301MPort>(Vec(527.976, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RETRIGGER_INPUT));
-		// addInput(Port::create<PJ301MPort>(Vec(563.503, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::VELOCITY_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(421.394, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::VOCT_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(456.921, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::GATE_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(492.448, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::RETRIGGER_INPUT));
+		addInput(Port::create<PJ301MPort>(Vec(527.976, 380.f-91-23.6), Port::INPUT, module, PianoRollModule::VELOCITY_INPUT));
 
 		// addOutput(Port::create<PJ301MPort>(Vec(50.114, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::CLOCK_OUTPUT));
 		// addOutput(Port::create<PJ301MPort>(Vec(85.642, 380.f-25.9-23.6), Port::OUTPUT, module, PianoRollModule::RUN_OUTPUT));
@@ -1831,19 +1970,28 @@ struct SequenceRunningChoice : LedDisplayChoice {
 		widget->module->sequenceRunning = !(widget->module->sequenceRunning);
 	}
 	void step() override {
-		if (widget->module->measureLock) {
-			if (widget->module->sequenceRunning) {
-				text = "§ Running";
+		std::string displayText;
+		if (widget->module->sequenceRunning) {
+			if (widget->module->recording) {
+				displayText += "Recording";
+			} else if (widget->module->recordingPending) {
+				displayText += "Prerecord";
 			} else {
-				text = "§ Paused";
+				displayText += "Running";
 			}
 		} else {
-			if (widget->module->sequenceRunning) {
-				text = "Running";
-			} else {
-				text = "Paused";
+			displayText += "Paused";
+
+			if (widget->module->recording) {
+				displayText += " (rec)";
+			}
+
+			if (widget->module->recordingPending) {
+				displayText += " (pre)";
 			}
 		}
+
+		text = displayText;
 	}
 };
 

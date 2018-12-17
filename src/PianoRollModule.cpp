@@ -1992,6 +1992,9 @@ struct SequenceRunningChoice : LedDisplayChoice {
 
 	void onAction(EventAction &e) override {
 		widget->module->sequenceRunning = !(widget->module->sequenceRunning);
+		if (!widget->module->sequenceRunning) {
+			widget->module->gateOut.reset();
+		}
 	}
 	void step() override {
 		std::string displayText;

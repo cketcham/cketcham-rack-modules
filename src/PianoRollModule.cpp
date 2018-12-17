@@ -1023,6 +1023,24 @@ struct PianoRollWidget : ModuleWidget {
 		}
 	};
 
+	struct ClearNotesItem : MenuItem {
+		PianoRollModule *module = NULL;
+
+		ClearNotesItem(PianoRollModule* module) {
+			this->module = module;
+			text = "Clear Notes";
+		}
+
+		void onAction(EventAction &e) override {
+			for (auto& measure : module->patternData[module->currentPattern].measures) {
+				for (auto& note : measure.notes) {
+					note.active = false;
+					note.retrigger = false;
+				}
+			}
+		}
+	};
+
 
 	void appendContextMenu(Menu* menu) override {
 
@@ -1066,6 +1084,9 @@ struct PianoRollWidget : ModuleWidget {
 				state = COPYREADY;
 				break;
 		}
+
+		menu->addChild(MenuLabel::create(""));
+			menu->addChild(new ClearNotesItem(this->module));
 
 		menu->addChild(MenuLabel::create(""));
 		menu->addChild(MenuLabel::create("Notes to Show"));

@@ -273,10 +273,10 @@ struct PianoRollModule : Module {
 	SchmittTrigger recordingIn;
 	bool recordingPending = false;
 	bool recording = false;
-	RingBuffer<float, 128> voctInBuffer;
-	RingBuffer<float, 128> gateInBuffer;
-	RingBuffer<float, 128> retriggerInBuffer;
-	RingBuffer<float, 128> velocityInBuffer;
+	RingBuffer<float, 512> voctInBuffer;
+	RingBuffer<float, 512> gateInBuffer;
+	RingBuffer<float, 512> retriggerInBuffer;
+	RingBuffer<float, 512> velocityInBuffer;
 
 	PianoRollModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS), startStopPlugged(false) {
 		patternData.resize(64);

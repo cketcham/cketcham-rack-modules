@@ -1870,7 +1870,10 @@ struct PatternItem : MenuItem {
 	PatternWidget *widget = NULL;
 	int pattern;
 	void onAction(EventAction &e) override {
-		widget->module->currentPattern = pattern;
+		if (widget->module->currentPattern != pattern) {
+			widget->module->currentPattern = pattern;
+			widget->module->currentStep = -1;
+		}
 	}
 };
 
@@ -1882,9 +1885,17 @@ struct PatternChoice : LedDisplayChoice {
 			Vec pos = gRackWidget->lastMousePos.minus(widget->widget->box.pos).minus(widget->box.pos);
 
 			if (pos.x < 20) {
-				widget->module->currentPattern = max(0, widget->module->currentPattern - 1);
+				int newPattern = max(0, widget->module->currentPattern - 1);
+				if (newPattern != widget->module->currentPattern) {
+					widget->module->currentPattern = newPattern;
+					widget->module->currentStep = -1;
+				}
 			} else if (pos.x > 67) {
-				widget->module->currentPattern = min(63, widget->module->currentPattern + 1);
+				int newPattern = max(0, widget->module->currentPattern + 1);
+				if (newPattern != widget->module->currentPattern) {
+					widget->module->currentPattern = newPattern;
+					widget->module->currentStep = -1;
+				}
 			} else {
 				Menu *menu = gScene->createMenu();
 				menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Pattern"));

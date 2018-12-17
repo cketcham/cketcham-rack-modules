@@ -657,8 +657,7 @@ void PianoRollModule::step() {
 	}
 
 	if (inputs[PATTERN_INPUT].active) {
-		float maxNote = 5.2f;
-		int nextPattern = floor(rescale(clamp(inputs[PATTERN_INPUT].value, 0.f, maxNote), 0, maxNote, 0, 63));
+		int nextPattern = clamp(quantizePitch(inputs[PATTERN_INPUT].value)  - 48, 0, 63);
 		if (nextPattern != currentPattern) {
 			currentPattern = nextPattern;
 			currentStep = -1;

@@ -1726,11 +1726,14 @@ void LockMeasureDragging::onDragMove(EventDragMove &e) {
 	double pressTime = std::chrono::duration<double>(currTime - longPressStart).count();
 	widget->measureLockPressTime = clamp(pressTime, 0.f, 1.f);
 	if (pressTime >= 1.f) {
-		module->measureLock = !module->measureLock;
 
-		if (module->measureLock && (module->currentStep / module->getDivisionsPerMeasure()) != widget->currentMeasure) {
+		if (!module->measureLock || (module->currentStep / module->getDivisionsPerMeasure()) != widget->currentMeasure) {
+			module->measureLock = true;
+
 			// We just locked the measure, but the play point is outside the selected measure - move the play point into the last note of the current measure
 			module->currentStep = (module->getDivisionsPerMeasure() * widget->currentMeasure) + (module->getDivisionsPerMeasure() - 1);
+		} else {
+			module->measureLock = false;
 		}
 
 		longPressStart = std::chrono::high_resolution_clock::now();

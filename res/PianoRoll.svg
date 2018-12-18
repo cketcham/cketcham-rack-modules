@@ -38,9 +38,9 @@
      inkscape:bbox-nodes="true"
      inkscape:snap-bbox-edge-midpoints="true"
      inkscape:window-width="1920"
-     inkscape:window-height="983"
-     inkscape:window-x="0"
-     inkscape:window-y="27"
+     inkscape:window-height="1043"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      showguides="false"
      inkscape:snap-global="false">
@@ -5045,6 +5045,16 @@
          id="path4041"
          d="M247.887,325.933 C250.762,328.615 249.308,327.275 252.249,329.951 C251.219,330.258 251.732,330.106 250.712,330.408 L250.7,330.408 C248.866,327.42 249.803,328.912 247.887,325.934 L247.887,325.933 z" />
     </clipPath>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4665"
+       id="linearGradient26845"
+       x1="5.3565407"
+       y1="72.960655"
+       x2="2.9782357e-05"
+       y2="1.3228186"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(2.270311,0,0,0.90395135,77.660115,196.28738)" />
   </defs>
   <metadata
      id="metadata5">
@@ -10621,6 +10631,13 @@
          x="50.940273"
          y="279.18201"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222247px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458335">REC</tspan></text>
+    <rect
+       style="opacity:0.16799999;fill:url(#linearGradient26845);fill-opacity:1;stroke:none;stroke-width:1.49846601;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect26837"
+       width="158.75002"
+       height="66.145844"
+       x="0"
+       y="196.4583" />
   </g>
   <g
      inkscape:groupmode="layer"

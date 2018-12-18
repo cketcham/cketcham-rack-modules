@@ -22,10 +22,12 @@ int PatternData::getStepsPerMeasure(int pattern) const {
 
 void PatternData::setMeasures(int pattern, int measures) {
   pattern = clamp(pattern, 0, patterns.size()-1);
-  patterns[pattern].numberOfMeasures = measures;
-  if ((int)patterns[pattern].measures.size() <= measures) {
-    patterns[pattern].measures.resize(measures + 1);
+  while ((int)patterns[pattern].measures.size() <= measures) {
+    Measure newMeasure;
+    newMeasure.steps.resize(getStepsPerMeasure(pattern));
+    patterns[pattern].measures.push_back(newMeasure);
   }
+  patterns[pattern].numberOfMeasures = measures;
 }
 
 int PatternData::getMeasures(int pattern) const {
@@ -39,7 +41,7 @@ void PatternData::setBeatsPerMeasure(int pattern, int beats) {
 
   for(auto& measure : patterns[pattern].measures) {
     if ((int)measure.steps.size() < getStepsPerMeasure(pattern)) {
-      measure.steps.resize(getStepsPerMeasure(pattern) + 1);
+      measure.steps.resize(getStepsPerMeasure(pattern));
     }
   }
 }

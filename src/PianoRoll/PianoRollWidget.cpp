@@ -589,7 +589,7 @@ void PianoRollWidget::onMouseDown(EventMouseDown& e) {
     int currentPattern = module->transport.currentPattern();
 
     int beatDiv = std::get<1>(cell).num;
-    int pitch = std::get<2>(cell).pitch();
+
     module->patternData.toggleStepRetrigger(currentPattern, currentMeasure, beatDiv);
   } else if (e.button == 0 && std::get<0>(octaveSwitch)) {
     this->lowestDisplayNote = clamp(this->lowestDisplayNote + 12, -1 * 12, 8 * 12);

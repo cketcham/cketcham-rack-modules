@@ -20,7 +20,7 @@ CXXFLAGS +=
 #LDFLAGS = -Ldep 
 
 # Add .cpp and .c files to the build
-SOURCES += $(wildcard src/*.cpp) $(wildcard src/PianoRoll/*.cpp) $(wildcard src/*.c)
+SOURCES += $(wildcard src/*.cpp) $(wildcard src/**/*.cpp) $(wildcard src/*.c)
 
 # Add files to the ZIP package when running `make dist`
 # The compiled plugin is automatically added.

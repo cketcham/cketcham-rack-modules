@@ -27,7 +27,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.98"
-     inkscape:cx="108.47882"
+     inkscape:cx="-19.551483"
      inkscape:cy="190.20735"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -38,9 +38,9 @@
      inkscape:bbox-nodes="true"
      inkscape:snap-bbox-edge-midpoints="true"
      inkscape:window-width="1920"
-     inkscape:window-height="983"
-     inkscape:window-x="0"
-     inkscape:window-y="27"
+     inkscape:window-height="1043"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      showguides="false"
      inkscape:snap-global="false">
@@ -3942,7 +3942,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -4036,7 +4036,7 @@
        x="-0.66145831"
        y="195.79686" />
     <rect
-       style="opacity:0.169;fill:url(#linearGradient4657);fill-opacity:1;stroke-width:0.27386978"
+       style="opacity:0.3;fill:url(#linearGradient4657);fill-opacity:1;stroke-width:0.27386978"
        id="rect4649"
        width="19.843752"
        height="66.145844"
@@ -4751,31 +4751,6 @@
          d="m 16.102103,199.0301 h -0.774702 v 2.82364 h 0.774702 z"
          style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:4.23334503px;font-family:Blippo;-inkscape-font-specification:'Blippo, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458406"
          id="path11494" />
-    </g>
-    <g
-       id="Page-1"
-       transform="matrix(0.26458336,0,0,0.26458336,48.742135,210.45716)"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
-       inkscape:tile-cx="72.025462"
-       inkscape:tile-cy="31.990533"
-       inkscape:tile-w="4.2333333"
-       inkscape:tile-h="4.2333333"
-       inkscape:tile-x0="69.908795"
-       inkscape:tile-y0="29.873867">
-      <g
-         id="dots"
-         style="fill:#000000">
-        <circle
-           r="3"
-           cy="3"
-           cx="3"
-           id="Oval-377-Copy-9" />
-        <circle
-           r="3"
-           cy="13"
-           cx="13"
-           id="Oval-377-Copy-14" />
-      </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"

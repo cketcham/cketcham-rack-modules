@@ -27,7 +27,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4000714"
-     inkscape:cx="168.84184"
+     inkscape:cx="-12.220354"
      inkscape:cy="211.13677"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -38,9 +38,9 @@
      inkscape:bbox-nodes="true"
      inkscape:snap-bbox-edge-midpoints="true"
      inkscape:window-width="1920"
-     inkscape:window-height="983"
-     inkscape:window-x="0"
-     inkscape:window-y="27"
+     inkscape:window-height="1043"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      showguides="false"
      inkscape:snap-global="false">
@@ -3946,7 +3946,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -4058,7 +4058,7 @@
        x="-0.66145831"
        y="195.79686" />
     <rect
-       style="opacity:0.169;fill:url(#linearGradient4657);fill-opacity:1;stroke-width:0.27386978"
+       style="opacity:0.3;fill:url(#linearGradient4657);fill-opacity:1;stroke-width:0.27386978"
        id="rect4649"
        width="19.843752"
        height="66.145844"
@@ -4716,7 +4716,7 @@
            height="290.69946"
            x="-361.41013"
            y="-218.54089" /></flowRegion><flowPara
-         id="flowPara2508"></flowPara></flowRoot>    <flowRoot
+         id="flowPara2508" /></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot2510"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
@@ -4727,7 +4727,7 @@
            height="203.56105"
            x="-417.83582"
            y="-154.9727" /></flowRegion><flowPara
-         id="flowPara2516"></flowPara></flowRoot>    <g
+         id="flowPara2516" /></flowRoot>    <g
        aria-label="Duck"
        style="font-style:normal;font-weight:normal;font-size:10.58333397px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458335"
        id="text2520">

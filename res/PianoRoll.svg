@@ -27,10 +27,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4142136"
-     inkscape:cx="369.53497"
+     inkscape:cx="190.28341"
      inkscape:cy="204.55899"
      inkscape:document-units="px"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="layer1"
      showgrid="false"
      units="px"
      inkscape:snap-bbox="true"
@@ -10632,11 +10632,11 @@
          y="279.18201"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222247px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458335">REC</tspan></text>
     <rect
-       style="opacity:0.16799999;fill:url(#linearGradient26845);fill-opacity:1;stroke:none;stroke-width:1.49846601;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="opacity:0.3;fill:url(#linearGradient26845);fill-opacity:1;stroke:none;stroke-width:1.49846601;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect26837"
        width="158.75002"
        height="66.145844"
-       x="0"
+       x="-1.1343679e-06"
        y="196.4583" />
   </g>
   <g

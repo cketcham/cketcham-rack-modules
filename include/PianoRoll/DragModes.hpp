@@ -1,28 +1,21 @@
 #include "rack.hpp"
+#include "../ModuleDragType.hpp"
 
 using namespace rack;
 
 struct PianoRollModule;
 struct PianoRollWidget;
 
-struct ModuleDragType {
+struct PianoRollDragType : ModuleDragType {
 	PianoRollWidget* widget;
 	PianoRollModule* module;
 
-	ModuleDragType(PianoRollWidget* widget, PianoRollModule* module);
-	virtual ~ModuleDragType();
-
-	virtual void onDragMove(EventDragMove& e) = 0;
+	PianoRollDragType(PianoRollWidget* widget, PianoRollModule* module);
+	virtual ~PianoRollDragType();
 };
 
-struct ColourDragging : public ModuleDragType {
-	ColourDragging(PianoRollWidget* widget, PianoRollModule* module);
-	virtual ~ColourDragging();
 
-	void onDragMove(EventDragMove& e) override;
-};
-
-struct PlayPositionDragging : public ModuleDragType {
+struct PlayPositionDragging : public PianoRollDragType {
 	PlayPositionDragging(PianoRollWidget* widget, PianoRollModule* module);
 	virtual ~PlayPositionDragging();
 
@@ -30,7 +23,7 @@ struct PlayPositionDragging : public ModuleDragType {
 	void onDragMove(EventDragMove& e) override;
 };
 
-struct LockMeasureDragging : public ModuleDragType {
+struct LockMeasureDragging : public PianoRollDragType {
 	std::chrono::_V2::system_clock::time_point longPressStart;
 	LockMeasureDragging(PianoRollWidget* widget, PianoRollModule* module);
 	virtual ~LockMeasureDragging();
@@ -38,7 +31,7 @@ struct LockMeasureDragging : public ModuleDragType {
 	void onDragMove(EventDragMove& e) override;
 };
 
-struct KeyboardDragging : public ModuleDragType {
+struct KeyboardDragging : public PianoRollDragType {
 	float offset = 0;
 
   KeyboardDragging(PianoRollWidget* widget, PianoRollModule* module);
@@ -47,7 +40,7 @@ struct KeyboardDragging : public ModuleDragType {
 	void onDragMove(EventDragMove& e) override;
 };
 
-struct NotePaintDragging : public ModuleDragType {
+struct NotePaintDragging : public PianoRollDragType {
 	int lastDragBeatDiv = -1000;
 	int lastDragPitch = -1000;
 	bool makeStepsActive = true;
@@ -58,7 +51,7 @@ struct NotePaintDragging : public ModuleDragType {
 	void onDragMove(EventDragMove& e) override;
 };
 
-struct VelocityDragging : public ModuleDragType {
+struct VelocityDragging : public PianoRollDragType {
   int pattern;
 	int measure;
 	int division;
@@ -69,10 +62,4 @@ struct VelocityDragging : public ModuleDragType {
 	void onDragMove(EventDragMove& e) override;
 };
 
-struct StandardModuleDragging : public ModuleDragType {
-	StandardModuleDragging(PianoRollWidget* widget, PianoRollModule* module);
-	virtual ~StandardModuleDragging();
-
-	void onDragMove(EventDragMove& e) override;
-};
 

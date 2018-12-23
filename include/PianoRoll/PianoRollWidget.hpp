@@ -2,6 +2,7 @@
 #include <limits>
 
 #include "rack.hpp"
+#include "../BaseWidget.hpp"
 
 using namespace rack;
 
@@ -40,12 +41,9 @@ struct BeatDiv {
 	BeatDiv() : pos(Vec(0,0)), size(Vec(0,0)), num(0), beat(false), triplet(false) {}
 };
 
-struct PianoRollWidget : ModuleWidget {
+struct PianoRollWidget : BaseWidget {
 	PianoRollModule* module;
 	CopyPasteState state;
-	float backgroundHue = 0.5f;
-	float backgroundSaturation = 1.f;
-	float backgroundLuminosity = 0.25f;
 
 	int notesToShow = 18;
 	int lowestDisplayNote = 4 * 12;
@@ -56,8 +54,6 @@ struct PianoRollWidget : ModuleWidget {
 	float displayVelocityLow = -1;
 
 	double measureLockPressTime = 0.f;
-
-	ModuleDragType *currentDragType = NULL;
 
 	PianoRollWidget(PianoRollModule *module);
 
@@ -76,7 +72,6 @@ struct PianoRollWidget : ModuleWidget {
 	void drawMeasures(NVGcontext *ctx);
 	void drawPlayPosition(NVGcontext *ctx);
 	void drawVelocityInfo(NVGcontext *ctx);
-	void drawBackgroundColour(NVGcontext* ctx);
 
 	// Event Handlers
 
@@ -84,9 +79,6 @@ struct PianoRollWidget : ModuleWidget {
 	void draw(NVGcontext* ctx) override;
 	void onMouseDown(EventMouseDown& e) override;
 	void onDragStart(EventDragStart& e) override;
-	void baseDragMove(EventDragMove& e);
-	void onDragMove(EventDragMove& e) override;
-	void onDragEnd(EventDragEnd& e) override;
 
 	json_t *toJson() override;
 	void fromJson(json_t *rootJ) override;

@@ -17,7 +17,12 @@ using namespace rack;
 
 extern Plugin* plugin;
 
-PianoRollWidget::PianoRollWidget(PianoRollModule *module) : ModuleWidget(module) {
+PianoRollWidget::PianoRollWidget(PianoRollModule *module) : BaseWidget(module) {
+  colourHotZone = Rect(Vec(506, 10), Vec(85, 13));
+	backgroundHue = 0.5f;
+	backgroundSaturation = 1.f;
+	backgroundLuminosity = 0.25f;
+
   this->module = (PianoRollModule*)module;
   setPanel(SVG::load(assetPlugin(plugin, "res/PianoRoll.svg")));
 
@@ -542,17 +547,8 @@ void PianoRollWidget::drawVelocityInfo(NVGcontext *ctx) {
   }
 }
 
-void PianoRollWidget::drawBackgroundColour(NVGcontext* ctx) {
-    nvgBeginPath(ctx);
-    nvgFillColor(ctx, nvgHSL(backgroundHue, backgroundSaturation, backgroundLuminosity));
-    nvgRect(ctx, 0, 0, box.size.x, box.size.y);
-    nvgFill(ctx);
-}
-
 void PianoRollWidget::draw(NVGcontext* ctx) {
-  drawBackgroundColour(ctx);
-
-  ModuleWidget::draw(ctx);
+  BaseWidget::draw(ctx);
 
   Rect roll = getRollArea();
 
@@ -611,7 +607,6 @@ void PianoRollWidget::onDragStart(EventDragStart& e) {
   Rect roll = getRollArea();
   Rect keysArea = reserveKeysArea(roll);
   bool inKeysArea = keysArea.contains(pos);
-  bool inPianoRollLogo = Rect(Vec(506, 10), Vec(85, 13)).contains(pos);
 
   Rect playDragArea(Vec(roll.pos.x, roll.pos.y), Vec(roll.size.x, topMargins));
 
@@ -623,34 +618,16 @@ void PianoRollWidget::onDragStart(EventDragStart& e) {
     currentDragType = new KeyboardDragging(this, module);
   } else if (playDragArea.contains(pos)) {
     currentDragType = new PlayPositionDragging(this, module);
-  } else if (inPianoRollLogo && windowIsShiftPressed()) {
-    currentDragType = new ColourDragging(this, module);
   } else if (std::get<0>(measureSwitch)) {
     currentDragType = new LockMeasureDragging(this, module);
-  } else {
-    currentDragType = new StandardModuleDragging(this, module);
   }
 
-  ModuleWidget::onDragStart(e);
+  BaseWidget::onDragStart(e);
 }
 
-void PianoRollWidget::baseDragMove(EventDragMove& e) {
-  ModuleWidget::onDragMove(e);
-}
-
-void PianoRollWidget::onDragMove(EventDragMove& e) {
-  currentDragType->onDragMove(e);
-}
-
-void PianoRollWidget::onDragEnd(EventDragEnd& e) {
-  delete currentDragType;
-  currentDragType = NULL;
-
-  ModuleWidget::onDragEnd(e);
-}
 
 json_t *PianoRollWidget::toJson() {
-  json_t *rootJ = ModuleWidget::toJson();
+  json_t *rootJ = BaseWidget::toJson();
   if (rootJ == NULL) {
       rootJ = json_object();
   }
@@ -658,14 +635,12 @@ json_t *PianoRollWidget::toJson() {
   json_object_set_new(rootJ, "lowestDisplayNote", json_integer(this->lowestDisplayNote));
   json_object_set_new(rootJ, "notesToShow", json_integer(this->notesToShow));
   json_object_set_new(rootJ, "currentMeasure", json_integer(this->currentMeasure));
-  json_object_set_new(rootJ, "backgroundHue", json_real(this->backgroundHue));
-  json_object_set_new(rootJ, "backgroundSaturation", json_real(this->backgroundSaturation));
-  json_object_set_new(rootJ, "backgroundLuminosity", json_real(this->backgroundLuminosity));
+
   return rootJ;
 }
 
 void PianoRollWidget::fromJson(json_t *rootJ) {
-  ModuleWidget::fromJson(rootJ);
+  BaseWidget::fromJson(rootJ);
 
   json_t *lowestDisplayNoteJ = json_object_get(rootJ, "lowestDisplayNote");
   if (lowestDisplayNoteJ) {
@@ -680,21 +655,6 @@ void PianoRollWidget::fromJson(json_t *rootJ) {
   json_t *currentMeasureJ = json_object_get(rootJ, "currentMeasure");
   if (currentMeasureJ) {
     currentMeasure = json_integer_value(currentMeasureJ);
-  }
-
-  json_t *backgroundHueJ = json_object_get(rootJ, "backgroundHue");
-  if (backgroundHueJ) {
-    backgroundHue = json_real_value(backgroundHueJ);
-  }
-
-  json_t *backgroundSaturationJ = json_object_get(rootJ, "backgroundSaturation");
-  if (backgroundSaturationJ) {
-    backgroundSaturation = json_real_value(backgroundSaturationJ);
-  }
-
-  json_t *backgroundLuminosityJ = json_object_get(rootJ, "backgroundLuminosity");
-  if (backgroundLuminosityJ) {
-    backgroundLuminosity = json_real_value(backgroundLuminosityJ);
   }
 }
 

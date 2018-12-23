@@ -5,33 +5,13 @@
 
 static const float VELOCITY_SENSITIVITY = 0.0015f;
 static const float KEYBOARDDRAG_SENSITIVITY = 0.1f;
-static const float COLOURDRAG_SENSITIVITY = 0.0015f;
 
-ModuleDragType::ModuleDragType(PianoRollWidget* widget, PianoRollModule* module) : widget(widget), module(module) {}
+PianoRollDragType::PianoRollDragType(PianoRollWidget* widget, PianoRollModule* module) : widget(widget), module(module) {}
 
-ModuleDragType::~ModuleDragType() {}
+PianoRollDragType::~PianoRollDragType() {}
 
-ColourDragging::ColourDragging(PianoRollWidget* widget, PianoRollModule* module) : ModuleDragType(widget, module) {
-  windowCursorLock();
-}
 
-ColourDragging::~ColourDragging() {
-	windowCursorUnlock();
-}
-
-void ColourDragging::onDragMove(EventDragMove& e) {
-	float speed = 1.f;
-	float range = 1.f;
-
-	float delta = COLOURDRAG_SENSITIVITY * e.mouseRel.y * speed * range;
-	if (windowIsModPressed()) {
-		delta /= 16.f;
-	}
-
-	widget->backgroundHue = clamp(widget->backgroundHue + delta, 0.f, 1.f);
-}
-
-PlayPositionDragging::PlayPositionDragging(PianoRollWidget* widget, PianoRollModule* module): ModuleDragType(widget, module) {
+PlayPositionDragging::PlayPositionDragging(PianoRollWidget* widget, PianoRollModule* module): PianoRollDragType(widget, module) {
 	setNote();
 }
 
@@ -75,7 +55,7 @@ void PlayPositionDragging::setNote() {
   }
 }
 
-KeyboardDragging::KeyboardDragging(PianoRollWidget* widget, PianoRollModule* module) : ModuleDragType(widget, module) {
+KeyboardDragging::KeyboardDragging(PianoRollWidget* widget, PianoRollModule* module) : PianoRollDragType(widget, module) {
   windowCursorLock();
 }
 
@@ -83,7 +63,7 @@ KeyboardDragging::~KeyboardDragging() {
   windowCursorUnlock();
 }
 
-LockMeasureDragging::LockMeasureDragging(PianoRollWidget* widget, PianoRollModule* module): ModuleDragType(widget, module) {
+LockMeasureDragging::LockMeasureDragging(PianoRollWidget* widget, PianoRollModule* module): PianoRollDragType(widget, module) {
 	longPressStart = std::chrono::high_resolution_clock::now();
 	widget->measureLockPressTime = 0.f;
 }
@@ -135,7 +115,7 @@ void KeyboardDragging::onDragMove(EventDragMove& e) {
 	}
 }
 
-NotePaintDragging::NotePaintDragging(PianoRollWidget* widget, PianoRollModule* module) : ModuleDragType(widget, module) {
+NotePaintDragging::NotePaintDragging(PianoRollWidget* widget, PianoRollModule* module) : PianoRollDragType(widget, module) {
 	Vec pos = gRackWidget->lastMousePos.minus(widget->box.pos);
 
 	std::tuple<bool, BeatDiv, Key> cell = widget->findCell(pos);
@@ -195,7 +175,7 @@ void NotePaintDragging::onDragMove(EventDragMove& e) {
 }
 
 VelocityDragging::VelocityDragging(PianoRollWidget* widget, PianoRollModule* module, int pattern, int measure, int division) 
-  :ModuleDragType(widget, module), 
+  :PianoRollDragType(widget, module), 
     pattern(pattern),
     measure(measure),
     division(division) {
@@ -227,11 +207,4 @@ void VelocityDragging::onDragMove(EventDragMove& e) {
 		widget->displayVelocityHigh = newVelocity;
 		widget->displayVelocityLow = -1;
 	}
-}
-
-StandardModuleDragging::StandardModuleDragging(PianoRollWidget* widget, PianoRollModule* module) : ModuleDragType(widget, module) {}
-StandardModuleDragging::~StandardModuleDragging() {}
-
-void StandardModuleDragging::onDragMove(EventDragMove& e) {
-	widget->baseDragMove(e);
 }

@@ -6,7 +6,7 @@ namespace SongRoll {
 
   struct SongRollData;
 
-  class ClockDivControlWidget : public Widget {
+  class ClockDivControlWidget : public VirtualWidget {
   public:
     int clock_div=1;
 

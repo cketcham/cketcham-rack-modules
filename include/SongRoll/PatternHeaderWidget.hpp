@@ -4,7 +4,7 @@ using namespace rack;
 
 namespace SongRoll {
 
-  class PatternHeaderWidget : public Widget {
+  class PatternHeaderWidget : public VirtualWidget {
   public:
     int repeats;
     int repeats_completed;

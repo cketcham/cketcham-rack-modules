@@ -6,7 +6,7 @@ namespace SongRoll {
 
   struct SongRollData;
 
-  class PatternControlWidget : public Widget {
+  class PatternControlWidget : public VirtualWidget {
   public:
     int pattern=0;
 

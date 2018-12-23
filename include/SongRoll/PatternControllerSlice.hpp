@@ -9,7 +9,7 @@ namespace SongRoll {
   struct RepeatControlWidget;
   struct ClockDivControlWidget;
 
-  class PatternControllerSlice : public Widget {
+  class PatternControllerSlice : public VirtualWidget {
   public:
     const int channel;
     SongRollData& data;

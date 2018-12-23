@@ -6,7 +6,7 @@ namespace SongRoll {
 
   struct SongRollData;
 
-  class RepeatControlWidget : public Widget {
+  class RepeatControlWidget : public VirtualWidget {
   public:
     int repeats=1;
     int repeats_complete=0;

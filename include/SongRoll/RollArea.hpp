@@ -6,7 +6,7 @@ namespace SongRoll {
 
   class SongRollData;
 
-  class RollArea : public Widget {
+  class RollArea : public VirtualWidget {
   public:
     SongRollData& data;
     RollArea(Rect box, SongRollData& data);

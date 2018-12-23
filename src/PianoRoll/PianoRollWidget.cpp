@@ -519,7 +519,7 @@ void PianoRollWidget::drawVelocityInfo(NVGcontext *ctx) {
     nvgBeginPath(ctx);
     snprintf(buffer, 100, "Velocity: %06.3fV (Midi %03d)", displayVelocity * 10.f, (int)(127 * displayVelocity));
 
-    nvgFontSize(ctx, roll.size.y / 8.f);
+    nvgFontSize(ctx, roll.size.y / 12.f);
     float *bounds = new float[4];
     nvgTextBounds(ctx, roll.pos.x, posy, buffer, NULL, bounds);
 

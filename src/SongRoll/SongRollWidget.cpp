@@ -3,11 +3,16 @@
 #include "../../include/SongRoll/SongRollWidget.hpp"
 #include "../../include/SongRoll/SongRollModule.hpp"
 #include "../../include/SongRoll/DragModes.hpp"
+#include "../../include/SongRoll/RollArea.hpp"
+#include "../../include/Consts.hpp"
 
 using namespace rack;
 using namespace SongRoll;
 
 extern Plugin* plugin;
+
+static const int NUM_CHANNELS = 8;
+
 
 SongRollWidget::SongRollWidget(SongRollModule *module) : ModuleWidget(module) {
   this->module = (SongRollModule*)module;
@@ -35,6 +40,9 @@ SongRollWidget::SongRollWidget(SongRollModule *module) : ModuleWidget(module) {
 
   // patternWidget->widget = this;
   // addChild(patternWidget);
+
+  auto *rollArea = new RollArea(getRollArea(), module->songRollData);
+  addChild(rollArea);
 }
 
 void SongRollWidget::appendContextMenu(Menu* menu) {
@@ -42,7 +50,7 @@ void SongRollWidget::appendContextMenu(Menu* menu) {
 }
 
 Rect SongRollWidget::getRollArea() {
-  return Rect();
+  return Rect(Vec(16, 380-218-145), Vec(477, 217));
 }
 
 void SongRollWidget::drawBackgroundColour(NVGcontext* ctx) {
@@ -52,14 +60,63 @@ void SongRollWidget::drawBackgroundColour(NVGcontext* ctx) {
     nvgFill(ctx);
 }
 
+static int stepcount = 0;
+void SongRollWidget::drawPatternEditors(NVGcontext* ctx) {
+  //stepcount += 1;
+
+  Rect rollArea = getRollArea();
+  static const float PATTERN_AREA_HEIGHT = 1;
+  static const float leftMargin = 0;
+  // Rect patternArea(Vec(rollArea.pos.x, rollArea.pos.y + rollArea.size.y - (rollArea.size.y * PATTERN_AREA_HEIGHT)), Vec(rollArea.size.x, rollArea.size.y * PATTERN_AREA_HEIGHT));
+  Rect patternArea(Vec(rollArea.pos.x + leftMargin, rollArea.pos.y + rollArea.size.y - (rollArea.size.y * PATTERN_AREA_HEIGHT)), Vec(rollArea.size.x - leftMargin, rollArea.size.y * PATTERN_AREA_HEIGHT));
+
+  nvgBeginPath(ctx);
+  nvgFillColor(ctx, nvgRGBA(1, 1, 1, 1));
+  nvgRect(ctx, rollArea.pos.x, rollArea.pos.y, rollArea.size.x, rollArea.size.y);
+  nvgFill(ctx);
+
+
+  float channelWidth = patternArea.size.x / NUM_CHANNELS;
+
+  nvgSave(ctx);
+  nvgScissor(ctx, patternArea.pos.x, patternArea.pos.y, patternArea.size.x, patternArea.size.y);
+
+  for(int i = 1; i < NUM_CHANNELS; i++) {
+    nvgBeginPath(ctx);
+    nvgMoveTo(ctx, patternArea.pos.x + (channelWidth * i), patternArea.pos.y);
+    nvgLineTo(ctx, patternArea.pos.x + (channelWidth * i), patternArea.pos.y + patternArea.size.y);
+    nvgStrokeWidth(ctx, 1.f);
+    nvgStrokeColor(ctx, NV_YELLOW_H);
+    nvgStroke(ctx);
+  }
+
+  nvgRestore(ctx);
+}
+
 void SongRollWidget::draw(NVGcontext* ctx) {
   drawBackgroundColour(ctx);
 
   ModuleWidget::draw(ctx);
+
+  drawPatternEditors(ctx);
 }
+
+struct ClickZone {
+  Rect r;
+
+};
+
+//void std::vector<
 
 void SongRollWidget::onMouseDown(EventMouseDown& e) {
   Vec pos = gRackWidget->lastMousePos.minus(box.pos);
+
+  Rect repeatsMinus(Vec(), Vec());
+  Rect repeatsPlus(Vec(), Vec());
+  Rect modeFree(Vec(), Vec());
+  Rect modeRepeats(Vec(), Vec());
+  Rect modeLimit(Vec(), Vec());
+
 
   ModuleWidget::onMouseDown(e);
 }

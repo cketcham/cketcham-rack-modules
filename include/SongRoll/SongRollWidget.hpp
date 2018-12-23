@@ -24,6 +24,7 @@ namespace SongRoll {
     Rect getRollArea();
 
     void drawBackgroundColour(NVGcontext* ctx);
+    void drawPatternEditors(NVGcontext* ctx);
 
     // Event Handlers
 

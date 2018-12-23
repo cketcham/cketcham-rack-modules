@@ -7,6 +7,8 @@ namespace SongRoll {
     Transport(SongRollData* data);
     void reset();
 
+    int currentSection = 0;
+
   private:
     SongRollData* data;
   };

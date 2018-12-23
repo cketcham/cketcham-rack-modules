@@ -2,6 +2,7 @@
 #include <limits>
 
 #include "rack.hpp"
+#include "../../include/BaseWidget.hpp"
 
 using namespace rack;
 
@@ -11,13 +12,8 @@ namespace SongRoll {
   struct ModuleDragType;
   struct SongRollModule;
 
-  struct SongRollWidget : ModuleWidget {
+  struct SongRollWidget : BaseWidget {
     SongRollModule* module;
-    float backgroundHue = 0.25f;
-    float backgroundSaturation = 1.f;
-    float backgroundLuminosity = 0.25f;
-
-    ModuleDragType *currentDragType = NULL;
 
     SongRollWidget(SongRollModule *module);
 

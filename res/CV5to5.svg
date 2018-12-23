@@ -26,9 +26,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.8001429"
-     inkscape:cx="-134.27772"
-     inkscape:cy="238.20416"
+     inkscape:zoom="1.98"
+     inkscape:cx="70.237503"
+     inkscape:cy="188.85437"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -38,9 +38,9 @@
      inkscape:bbox-nodes="true"
      inkscape:snap-bbox-edge-midpoints="true"
      inkscape:window-width="1920"
-     inkscape:window-height="1043"
-     inkscape:window-x="1920"
-     inkscape:window-y="0"
+     inkscape:window-height="983"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
      inkscape:window-maximized="1"
      showguides="false"
      inkscape:snap-global="false">
@@ -3941,16 +3941,23 @@
     </rdf:RDF>
   </metadata>
   <g
+     inkscape:groupmode="layer"
+     id="layer9"
+     inkscape:label="Colour"
+     style="display:none">
+    <path
+       transform="translate(0,-196.4583)"
+       style="display:inline;opacity:1;vector-effect:none;fill:#9b2aff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.44371992;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal;filter:url(#filter6152);enable-background:new"
+       d="M 0,196.45831 H 19.843752 V 297 H 0 Z"
+       id="rect817"
+       inkscape:connector-curvature="0" />
+  </g>
+  <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-196.4583)"
      style="display:inline;opacity:1;filter:url(#filter6152)">
-    <path
-       style="opacity:1;vector-effect:none;fill:#9b2aff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.44371992;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
-       d="M 0,196.45831 H 19.843752 V 297 H 0 Z"
-       id="rect817"
-       inkscape:connector-curvature="0" />
     <g
        id="g21163"
        transform="translate(50.328211,27.116473)">

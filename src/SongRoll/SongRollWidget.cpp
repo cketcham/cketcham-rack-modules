@@ -14,8 +14,14 @@ extern Plugin* plugin;
 static const int NUM_CHANNELS = 8;
 
 
-SongRollWidget::SongRollWidget(SongRollModule *module) : ModuleWidget(module) {
+SongRollWidget::SongRollWidget(SongRollModule *module) : BaseWidget(module) {
   this->module = (SongRollModule*)module;
+
+  colourHotZone = Rect(Vec(506, 10), Vec(85, 13));
+	backgroundHue = 0.33f;
+	backgroundSaturation = 1.f;
+	backgroundLuminosity = 0.25f;
+
   setPanel(SVG::load(assetPlugin(plugin, "res/SongRoll.svg")));
 
   // addInput(Port::create<PJ301MPort>(Vec(50.114, 380.f-91-23.6), Port::INPUT, module, SongRollModule::CLOCK_INPUT));
@@ -96,7 +102,7 @@ void SongRollWidget::drawPatternEditors(NVGcontext* ctx) {
 void SongRollWidget::draw(NVGcontext* ctx) {
   drawBackgroundColour(ctx);
 
-  ModuleWidget::draw(ctx);
+  BaseWidget::draw(ctx);
 
   drawPatternEditors(ctx);
 }
@@ -118,36 +124,29 @@ void SongRollWidget::onMouseDown(EventMouseDown& e) {
   Rect modeLimit(Vec(), Vec());
 
 
-  ModuleWidget::onMouseDown(e);
+  BaseWidget::onMouseDown(e);
 }
 
 void SongRollWidget::onDragStart(EventDragStart& e) {
   Vec pos = gRackWidget->lastMousePos.minus(box.pos);
 
-  ModuleWidget::onDragStart(e);
+  BaseWidget::onDragStart(e);
 }
 
 void SongRollWidget::baseDragMove(EventDragMove& e) {
-  ModuleWidget::onDragMove(e);
+  BaseWidget::onDragMove(e);
 }
 
 void SongRollWidget::onDragMove(EventDragMove& e) {
-  if (currentDragType == NULL) { ModuleWidget::onDragMove(e); return; }
-
-  currentDragType->onDragMove(e);
+  BaseWidget::onDragMove(e);
 }
 
 void SongRollWidget::onDragEnd(EventDragEnd& e) {
-  if (currentDragType) {
-    delete currentDragType;
-    currentDragType = NULL;
-  }
-
-  ModuleWidget::onDragEnd(e);
+  BaseWidget::onDragEnd(e);
 }
 
 json_t *SongRollWidget::toJson() {
-  json_t *rootJ = ModuleWidget::toJson();
+  json_t *rootJ = BaseWidget::toJson();
   if (rootJ == NULL) {
       rootJ = json_object();
   }
@@ -156,7 +155,7 @@ json_t *SongRollWidget::toJson() {
 }
 
 void SongRollWidget::fromJson(json_t *rootJ) {
-  ModuleWidget::fromJson(rootJ);
+  BaseWidget::fromJson(rootJ);
 
 }
 

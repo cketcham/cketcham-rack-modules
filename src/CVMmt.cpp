@@ -1,4 +1,5 @@
 #include "GVerbWidget.hpp"
+#include "../include/BaseWidget.hpp"
 
 struct CVMmtModule : Module {
 	enum ParamIds {
@@ -36,10 +37,15 @@ struct PB61303White : SVGSwitch, MomentarySwitch {
 	}
 };
 
-struct CVMmtModuleWidget : ModuleWidget {
+struct CVMmtModuleWidget : BaseWidget {
     TextField *textField;
 
-	CVMmtModuleWidget(CVMmtModule *module) : ModuleWidget(module) {
+	CVMmtModuleWidget(CVMmtModule *module) : BaseWidget(module) {
+		colourHotZone = Rect(Vec(10, 10), Vec(50, 13));
+		backgroundHue = 0.754;
+		backgroundSaturation = 1.f;
+		backgroundLuminosity = 0.58f;
+
 		setPanel(SVG::load(assetPlugin(plugin, "res/CVMmt.svg")));
 
 		addParam(ParamWidget::create<PB61303White>(Vec(10, 156.23), module, CVMmtModule::BUTTON_PARAM, 0.0, 10.0, 0.0));
@@ -55,7 +61,7 @@ struct CVMmtModuleWidget : ModuleWidget {
 	}
 
 	json_t *toJson() override {
-		json_t *rootJ = ModuleWidget::toJson();
+		json_t *rootJ = BaseWidget::toJson();
 
 		// text
 		json_object_set_new(rootJ, "text", json_string(textField->text.c_str()));
@@ -64,7 +70,7 @@ struct CVMmtModuleWidget : ModuleWidget {
 	}
 
 	void fromJson(json_t *rootJ) override {
-		ModuleWidget::fromJson(rootJ);
+		BaseWidget::fromJson(rootJ);
 
 		// text
 		json_t *textJ = json_object_get(rootJ, "text");

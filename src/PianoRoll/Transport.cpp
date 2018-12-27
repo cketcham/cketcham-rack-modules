@@ -147,7 +147,6 @@ bool Transport::isPendingRecording() {
 
 void Transport::reset() {
   dirty = true;
-  pattern = 0;
   stepInPattern = -1;
 }
 

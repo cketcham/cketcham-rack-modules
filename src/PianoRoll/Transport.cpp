@@ -36,24 +36,34 @@ bool Transport::isLastStepOfPattern() {
 void Transport::setPattern(int pattern) {
   pattern = clamp(pattern, 0, 63);
   if (pattern != this->pattern) {
+    dirty = true;
     this->pattern = pattern;
     this->stepInPattern = -1;
   }
 }
 
 void Transport::setMeasure(int measure) {
-  stepInPattern = (patternData->getStepsPerMeasure(pattern) * measure) + (patternData->getStepsPerMeasure(pattern) - 1);
+  int firstStepInPattern = patternData->getStepsPerMeasure(pattern) * measure;
+  int lastStepInPattern = firstStepInPattern + patternData->getStepsPerMeasure(pattern) - 1;
+  if (stepInPattern < firstStepInPattern || stepInPattern > lastStepInPattern) {
+    dirty = true;
+    stepInPattern = lastStepInPattern;
+  }
 }
 
 void Transport::setStepInMeasure(int stepInMeasure) {
-  stepInPattern = (currentMeasure() * patternData->getStepsPerMeasure(pattern)) + (stepInMeasure % patternData->getStepsPerMeasure(pattern));
+  int newStepInPattern = (currentMeasure() * patternData->getStepsPerMeasure(pattern)) + (stepInMeasure % patternData->getStepsPerMeasure(pattern));
+  dirty |= (newStepInPattern != stepInPattern);
+  stepInPattern = newStepInPattern;
 }
 
 void Transport::setStepInPattern(int stepInPattern) {
+  dirty |= (this->stepInPattern != stepInPattern);
   this->stepInPattern = stepInPattern;
 }
 
 void Transport::advancePattern(int offset) {
+  dirty |= (offset != 0);
   setPattern(pattern + offset);
 }
 
@@ -61,6 +71,8 @@ void Transport::advanceStep() {
   if (!running) {
     return;
   }
+
+  dirty = true;
 
   int firstStepInLoop = 0;
   int measure = currentMeasure();
@@ -88,10 +100,12 @@ void Transport::advanceStep() {
 }
 
 void Transport::lockMeasure() {
+  dirty |= (locked == false);
   locked = true;
 }
 
 void Transport::unlockMeasure() {
+  dirty |= (locked == true);
   locked = false;
 }
 
@@ -100,10 +114,12 @@ bool Transport::isLocked() {
 }
 
 void Transport::toggleRun() {
+  dirty = true;
   running = !running;
 }
 
 void Transport::setRun(bool running) {
+  dirty |= this->running != running;
   this->running = running;
 }
 
@@ -112,6 +128,7 @@ bool Transport::isRunning() {
 }
 
 void Transport::toggleRecording() {
+  dirty = true;
   if (!recording) {
     pendingRecording = !pendingRecording;
   } else {
@@ -129,6 +146,13 @@ bool Transport::isPendingRecording() {
 }
 
 void Transport::reset() {
+  dirty = true;
   pattern = 0;
   stepInPattern = -1;
+}
+
+bool Transport::consumeDirty() {
+  bool wasdirty = dirty;
+  dirty = false;
+  return wasdirty;
 }

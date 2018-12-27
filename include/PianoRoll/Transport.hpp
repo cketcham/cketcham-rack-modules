@@ -32,6 +32,9 @@ public:
 
   void reset();
 
+  bool dirty = true;
+  bool consumeDirty();
+
 private:
   int pattern = 0;
   int stepInPattern = -1;

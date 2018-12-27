@@ -45,6 +45,9 @@ public:
   json_t *toJson() const;
   void fromJson(json_t *rootJ);
 
+  bool dirty = true;
+  bool consumeDirty();
+
 private:
   struct Step {
     int pitch = 0;

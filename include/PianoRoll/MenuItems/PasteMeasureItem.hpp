@@ -6,6 +6,6 @@ struct PasteMeasureItem : MenuItem {
   PianoRollWidget *widget = NULL;
   PianoRollModule *module = NULL;
   void onAction(EventAction &e) override {
-    module->patternData.pasteMeasure(module->transport.currentPattern(), widget->currentMeasure);
+    module->patternData.pasteMeasure(module->transport.currentPattern(), widget->rollAreaWidget->state.currentMeasure);
   }
 };

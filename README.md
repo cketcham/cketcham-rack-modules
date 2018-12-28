@@ -19,26 +19,36 @@ A monophonic quantized sequencer. With `1v/oct`, `gate`, `retrigger` & `velocity
 * Hold down a measure for 1 second to lock that measure. Playing will now loop around that measure only.
 * Hold down in the measure area for 1 second to unlock measures again.
 
+#### Clock sync - "Run" input
+
+The following inputs are generally for clock synchronisation: `clk`, `reset`, `run`.
+
+Note that the `run` input will toggle the run state whenever it receives a trigger - it doesn't actually know if the clock is running or not.
+
+The module defaults to the "Running" state. If your clock is paused when you hook it up, you will need to manually click the "Running" indicator to switch it into "Paused" mode so that it matches the clock.
+
+When the module is "Paused", `clk` inputs are ignored.
+
 #### Right click menu
 
-* Patterns and measures can be copied and pasted within the same module (not between modules) - right click menu.
+* Patterns and measures can be copied and pasted within the same module (not between modules).
 * All notes in the current pattern can be deleted, letting you start fresh.
 * You choose how many notes to show, from 1 to 5 octaves. (actually shows 1 extra note so you can more easily see which octaves are involved).
-* The clock input can be delayed by a few samples if you have timing issues with switching patterns (in the right-click menu).
+* The clock input can be delayed by a few samples if you have timing issues with switching patterns.
 
 #### Clock Delay
 
-If you use one piano roll to control the pattern selection for another piano roll, you may run in to timing issues. If both modules are driven from the same clock source, your main piano roll may receive a clock signal before receiving the changed pattern signal from the other module. In this situation, the first note of the original pattern will play again and then the first note of the new pattern will play on the next clock tick. To avoid this, you can artificially delay the clock processing by a few clock cycles to ensure that the clock and the new pattern signal arrive together or the clock arrives after the pattern change signal.
+If you use one piano roll to control the pattern selection for another piano roll, you may run in to timing issues. If both modules are driven from the same clock source, your main piano roll may receive a clock signal before receiving the changed pattern signal from the other module. In this situation, the first note of the original pattern will play again and then the first note of the new pattern will play on the next clock tick. To avoid this, you can artificially delay the clock processing by a few samples to ensure that the clock and the new pattern signal arrive together or the clock arrives after the pattern change signal.
 
 In the menu you can delay clock processing by up to 10 samples. By manually editing the presets, you can delay the clock processing by up to 15 samples.
 
 #### Recording
 
-You can record pitch information from a source (eg, midi input) by connecting the `1v/oct`, `gate`, `rtrg` and `vel` sources to the inputs on the right hand side (you don't have to connect everything, just what you have).
+You can record pitch information from a source (eg, midi input) by connecting the `1v/oct`, `gate`, `rtrg` and `vel` sources to the inputs on the right hand side (`rtrg` and `vel` inputs are optional for this).
 
-If you send a trigger to the `rec` input, the module will go into "Record pending" mode. Once the play position wraps around to the first position in the pattern (or measure, if you've locked the current measure), then recording will start.
+If you send a trigger to the `rec` input, the module will go into "Prerecord" mode. Once the play position wraps around to the first position in the pattern (or measure, if you've locked the current measure), then recording will start.
 
-Send a second trigger to the `rec` input to cancel recording or the pending record mode.
+Send a second trigger to the `rec` input to cancel recording or the prerecord mode.
 
 Once the end of the pattern has been reached, the module will automatically drop out of recording mode and start playing what has been recorded.
 

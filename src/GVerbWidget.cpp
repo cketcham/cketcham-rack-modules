@@ -28,7 +28,7 @@ void init(Plugin *p) {
 	p->addModel(modelCVMmtModule);
 	p->addModel(modelCVTglModule);
 	p->addModel(modelPianoRollModule);
-	p->addModel(modelSongRollModule);
+	//p->addModel(modelSongRollModule);
 	p->addModel(modelDuckModule);
 
 	// Any other plugin initialization may go here.

@@ -235,7 +235,7 @@ void PatternData::fromJson(json_t *patternsJ) {
       json_array_foreach(measuresJ, j, measureJ) {
         
         if (patterns[i].measures.size() <= j) {
-          patterns[i].measures.resize(j);
+          patterns[i].measures.resize(j + 1);
         }
 
         json_t *notesJ = json_object_get(measureJ, "notes");
@@ -250,6 +250,7 @@ void PatternData::fromJson(json_t *patternsJ) {
 
             json_t *pitchJ = json_object_get(noteJ, "pitch");
             if (pitchJ) {
+              info("Loading Pitch: %d/%d, %d/%d, %d/%d", i, patterns.size(), j, patterns[i].measures.size() ,k, patterns[i].measures[j].steps.size());
               patterns[i].measures[j].steps[k].pitch = json_integer_value(pitchJ);
             }
 

@@ -12,11 +12,12 @@ struct NotesToShowItem : MenuItem {
 
     snprintf(buffer, 10, "%d", value);
     text = buffer;
-    if (value == module->notesToShow) {
+    if (value == module->rollAreaWidget->state.notesToShow) {
       rightText = "✓";
     }
   }
   void onAction(EventAction &e) override {
-    module->notesToShow = value;
+    module->rollAreaWidget->state.notesToShow = value;
+    module->rollAreaWidget->state.dirty = true;
   }
 };

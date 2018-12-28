@@ -6,19 +6,7 @@
 #include "Transport.hpp"
 #include "Auditioner.hpp"
 
-template <typename T>
-struct ValueChangeTrigger {
-	T value;
-	bool changed;
-
-	ValueChangeTrigger(T initialValue) : value(initialValue), changed(false) { }
-
-	bool process(T newValue) {
-		changed = value != newValue;
-		value = newValue;
-		return changed;
-	}
-};
+#include "../ValueChangeTrigger.hpp"
 
 struct PianoRollModule : rack::Module {
 	enum ParamIds {
@@ -66,13 +54,10 @@ struct PianoRollModule : rack::Module {
 	Auditioner auditioner;
 
 	ValueChangeTrigger<bool> runInputActive;
-	bool sequenceRunning = true;
 	rack::RingBuffer<float, 16> clockBuffer;
 	int clockDelay = 0;
 
 	rack::SchmittTrigger recordingIn;
-	bool recordingPending = false;
-	bool recording = false;
 	rack::RingBuffer<float, 512> voctInBuffer;
 	rack::RingBuffer<float, 512> gateInBuffer;
 	rack::RingBuffer<float, 512> retriggerInBuffer;

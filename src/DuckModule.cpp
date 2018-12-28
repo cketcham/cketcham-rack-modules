@@ -1,4 +1,5 @@
 #include "GVerbWidget.hpp"
+#include "../include/BaseWidget.hpp"
 
 struct Follower {
 	float level = 0.f;
@@ -57,8 +58,13 @@ void DuckModule::step() {
 	outputs[RIGHT_OUTPUT].value = crossfade(inputs[RIGHT_UNDER_AUDIO].value, inputs[RIGHT_OVER_AUDIO].value, amount);
 }
 
-struct DuckModuleWidget : ModuleWidget {
-	DuckModuleWidget(DuckModule *module) : ModuleWidget(module) {
+struct DuckModuleWidget : BaseWidget {
+	DuckModuleWidget(DuckModule *module) : BaseWidget(module) {
+		colourHotZone = Rect(Vec(21.785, 10), Vec(37.278, 13));
+		backgroundHue = 0.58f;
+		backgroundSaturation = 1.f;
+		backgroundLuminosity = 0.58f;
+
 		setPanel(SVG::load(assetPlugin(plugin, "res/Duck.svg")));
 
 		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(10, 65), module, DuckModule::AMOUNT_PARAM, 0.0, 2.0, 1.0));

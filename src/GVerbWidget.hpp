@@ -17,3 +17,4 @@ extern Model *modelCVMmtModule;
 extern Model *modelCVTglModule;
 extern Model *modelAudioInterface16;
 extern Model *modelPianoRollModule;
+extern Model *modelSongRollModule;

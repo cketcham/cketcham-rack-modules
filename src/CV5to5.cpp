@@ -1,4 +1,5 @@
 #include "GVerbWidget.hpp"
+#include "../include/BaseWidget.hpp"
 
 struct CV5to5Module : Module {
 	enum ParamIds {
@@ -30,10 +31,15 @@ void CV5to5Module::step() {
 	outputs[CV_OUTPUT].value = params[AMOUNT_PARAM].value;
 }
 
-struct CV5to5ModuleWidget : ModuleWidget {
+struct CV5to5ModuleWidget : BaseWidget {
     TextField *textField;
 
-	CV5to5ModuleWidget(CV5to5Module *module) : ModuleWidget(module) {
+	CV5to5ModuleWidget(CV5to5Module *module) : BaseWidget(module) {
+		colourHotZone = Rect(Vec(10, 10), Vec(50, 13));
+		backgroundHue = 0.754;
+		backgroundSaturation = 1.f;
+		backgroundLuminosity = 0.58f;
+
 		setPanel(SVG::load(assetPlugin(plugin, "res/CV5to5.svg")));
 
 		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(10, 156.23), module, CV5to5Module::AMOUNT_PARAM, -5.0, 5.0, 0.0));
@@ -49,7 +55,7 @@ struct CV5to5ModuleWidget : ModuleWidget {
 	}
 
 	json_t *toJson() override {
-		json_t *rootJ = ModuleWidget::toJson();
+		json_t *rootJ = BaseWidget::toJson();
 
 		// text
 		json_object_set_new(rootJ, "text", json_string(textField->text.c_str()));
@@ -58,7 +64,7 @@ struct CV5to5ModuleWidget : ModuleWidget {
 	}
 
 	void fromJson(json_t *rootJ) override {
-		ModuleWidget::fromJson(rootJ);
+		BaseWidget::fromJson(rootJ);
 
 		// text
 		json_t *textJ = json_object_get(rootJ, "text");

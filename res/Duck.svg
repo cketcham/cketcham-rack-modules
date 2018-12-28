@@ -27,7 +27,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4000714"
-     inkscape:cx="168.84184"
+     inkscape:cx="-374.34474"
      inkscape:cy="211.13677"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -3946,21 +3946,28 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer4"
+     inkscape:label="Colour"
+     style="display:none">
+    <path
+       transform="translate(0,-196.4583)"
+       style="display:inline;opacity:1;vector-effect:none;fill:#2a96ff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.44371992;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal;filter:url(#filter6152);enable-background:new"
+       d="M 0,196.45831 H 19.843752 V 297 H 0 Z"
+       id="rect817"
+       inkscape:connector-curvature="0" />
+  </g>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-196.4583)"
      style="display:inline;opacity:1;filter:url(#filter6152)">
-    <path
-       style="opacity:1;vector-effect:none;fill:#2a96ff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.44371992;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
-       d="M 0,196.45831 H 19.843752 V 297 H 0 Z"
-       id="rect817"
-       inkscape:connector-curvature="0" />
     <path
        sodipodi:type="star"
        style="opacity:0.13900003;fill:#ffffff;fill-opacity:0.29803922;stroke:#020202;stroke-width:4.32487967;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -4058,11 +4065,11 @@
        x="-0.66145831"
        y="195.79686" />
     <rect
-       style="opacity:0.169;fill:url(#linearGradient4657);fill-opacity:1;stroke-width:0.27386978"
+       style="opacity:0.3;fill:url(#linearGradient4657);fill-opacity:1;stroke-width:0.27386978"
        id="rect4649"
        width="19.843752"
        height="66.145844"
-       x="-7.8100884e-06"
+       x="-7.9255378e-06"
        y="196.45831" />
     <g
        aria-label="My Module"
@@ -4716,7 +4723,7 @@
            height="290.69946"
            x="-361.41013"
            y="-218.54089" /></flowRegion><flowPara
-         id="flowPara2508"></flowPara></flowRoot>    <flowRoot
+         id="flowPara2508" /></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot2510"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
@@ -4727,26 +4734,31 @@
            height="203.56105"
            x="-417.83582"
            y="-154.9727" /></flowRegion><flowPara
-         id="flowPara2516"></flowPara></flowRoot>    <g
+         id="flowPara2516" /></flowRoot>    <g
        aria-label="Duck"
        style="font-style:normal;font-weight:normal;font-size:10.58333397px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458335"
-       id="text2520">
+       id="text2520"
+       transform="matrix(0.99999337,0,0,1,-3.4220976e-5,0)">
       <path
          d="m 6.6106878,199.95503 h 0.4191 c 0.3175,0 0.5884333,0.24977 0.5884333,0.57574 0,0.37676 -0.3090333,0.5842 -0.6604,0.5842 h -0.2159 v 0.82973 c 0.0889,0.004 0.1735667,0.008 0.2624667,0.008 0.8424334,-0.008 1.4647334,-0.6223 1.4647334,-1.46897 0,-0.57997 -0.4191,-1.10913 -0.9567334,-1.29963 -0.1566333,-0.055 -0.3217333,-0.0677 -0.4868334,-0.0677 H 5.764021 v 2.8194 h 0.8466668 z"
          style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:4.23333359px;font-family:Blippo;-inkscape-font-specification:'Blippo, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458335"
-         id="path3605" />
+         id="path3605"
+         inkscape:connector-curvature="0" />
       <path
          d="m 8.8301451,199.90423 v 1.08797 c 0,0.55033 0.3640667,1.016 0.9398001,1.016 0.5206998,0 0.8974668,-0.45297 0.8974668,-0.9525 v -1.15147 H 9.9011785 v 1.16417 c 0,0.0889 -0.055033,0.18203 -0.1524,0.18203 -0.1016,0 -0.1524,-0.0889 -0.1524,-0.18203 v -1.16417 z"
          style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:4.23333359px;font-family:Blippo;-inkscape-font-specification:'Blippo, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458335"
-         id="path3607" />
+         id="path3607"
+         inkscape:connector-curvature="0" />
       <path
          d="m 12.377943,200.94563 c -0.0508,0.13124 -0.148166,0.2286 -0.300567,0.2286 -0.156633,0 -0.300566,-0.1397 -0.300566,-0.29633 0,-0.16933 0.135466,-0.30903 0.3048,-0.30903 0.110066,0 0.198967,0.055 0.262467,0.14393 l 0.783166,-0.0254 c -0.09737,-0.50377 -0.567266,-0.85513 -1.071033,-0.85513 -0.567267,0 -1.0541,0.49106 -1.0541,1.0541 0,0.57573 0.461433,1.0922 1.0541,1.0922 0.5969,0 1.045633,-0.4445 1.087967,-1.03294 z"
          style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:4.23333359px;font-family:Blippo;-inkscape-font-specification:'Blippo, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458335"
-         id="path3609" />
+         id="path3609"
+         inkscape:connector-curvature="0" />
       <path
          d="m 14.259859,199.1126 h -0.774701 v 2.82363 h 0.774701 z m 1.185333,0.762 h -0.804333 l -0.3556,0.71543 0.486833,1.3462 h 0.855133 l -0.563033,-1.31233 z"
          style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:4.23333359px;font-family:Blippo;-inkscape-font-specification:'Blippo, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458335"
-         id="path3611" />
+         id="path3611"
+         inkscape:connector-curvature="0" />
     </g>
     <g
        aria-label="RECOVERY"

@@ -21,11 +21,14 @@ int PatternData::getStepsPerMeasure(int pattern) const {
 }
 
 void PatternData::setMeasures(int pattern, int measures) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
-  patterns[pattern].numberOfMeasures = measures;
-  if ((int)patterns[pattern].measures.size() <= measures) {
-    patterns[pattern].measures.resize(measures + 1);
+  while ((int)patterns[pattern].measures.size() <= measures) {
+    Measure newMeasure;
+    newMeasure.steps.resize(getStepsPerMeasure(pattern));
+    patterns[pattern].measures.push_back(newMeasure);
   }
+  patterns[pattern].numberOfMeasures = measures;
 }
 
 int PatternData::getMeasures(int pattern) const {
@@ -34,17 +37,19 @@ int PatternData::getMeasures(int pattern) const {
 }
 
 void PatternData::setBeatsPerMeasure(int pattern, int beats) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
   patterns[pattern].beatsPerMeasure = beats;
 
   for(auto& measure : patterns[pattern].measures) {
     if ((int)measure.steps.size() < getStepsPerMeasure(pattern)) {
-      measure.steps.resize(getStepsPerMeasure(pattern) + 1);
+      measure.steps.resize(getStepsPerMeasure(pattern));
     }
   }
 }
 
 void PatternData::setDivisionsPerBeat(int pattern, int divisions) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
   int previousSteps = getStepsPerMeasure(pattern);
 
@@ -78,12 +83,14 @@ void PatternData::copyMeasure(int pattern, int measure) {
 }
 
 void PatternData::pastePattern(int targetPattern) {
+  dirty = true;
   targetPattern = clamp(targetPattern, 0, patterns.size()-1);
 
   copyPatternData(copiedPattern, patterns[targetPattern]);
 }
 
 void PatternData::pasteMeasure(int targetPattern, int targetMeasure) {
+  dirty = true;
   targetPattern = clamp(targetPattern, 0, patterns.size()-1);
   targetMeasure = clamp(targetMeasure, 0, patterns[targetPattern].measures.size()-1);
 
@@ -91,6 +98,7 @@ void PatternData::pasteMeasure(int targetPattern, int targetMeasure) {
 }
 
 void PatternData::clearPatternSteps(int pattern) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
 
   for(auto& measure : patterns[pattern].measures) {
@@ -102,6 +110,7 @@ void PatternData::clearPatternSteps(int pattern) {
 }
 
 void PatternData::reset() {
+  dirty = true;
   size_t i;
   for (i = 0; i < patterns.size(); i++) {
     setMeasures(i, 1);
@@ -195,11 +204,15 @@ json_t *PatternData::toJson() const {
 }
 
 void PatternData::fromJson(json_t *patternsJ) {
+  dirty = true;
   reset();
 
   size_t i;
   json_t *patternJ;
   json_array_foreach(patternsJ, i, patternJ) {
+    if (i >= patterns.size()) {
+      continue;
+    }
     json_t *numberOfMeasuresJ = json_object_get(patternJ, "numberOfMeasures");
     if (numberOfMeasuresJ) {
       setMeasures(i, json_integer_value(numberOfMeasuresJ));
@@ -237,6 +250,7 @@ void PatternData::fromJson(json_t *patternsJ) {
 
             json_t *pitchJ = json_object_get(noteJ, "pitch");
             if (pitchJ) {
+              info("Loading Pitch: %d/%d, %d/%d, %d/%d", i, patterns.size(), j, patterns[i].measures.size() ,k, patterns[i].measures[j].steps.size());
               patterns[i].measures[j].steps[k].pitch = json_integer_value(pitchJ);
             }
 
@@ -262,6 +276,7 @@ void PatternData::fromJson(json_t *patternsJ) {
 }
 
 void PatternData::reassignSteps(int pattern, int fromSteps, int toSteps) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
 
   float scale = (float)toSteps / (float)fromSteps;
@@ -301,6 +316,7 @@ void PatternData::reassignSteps(int pattern, int fromSteps, int toSteps) {
 }
 
 float PatternData::adjustVelocity(int pattern, int measure, int step, float delta) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
   measure = clamp(measure, 0, patterns[pattern].measures.size()-1);
   step = clamp(step, 0, patterns[pattern].measures[measure].steps.size()-1);
@@ -334,6 +350,7 @@ float PatternData::adjustVelocity(int pattern, int measure, int step, float delt
 }
 
 void PatternData::toggleStepActive(int pattern, int measure, int step) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
   measure = clamp(measure, 0, patterns[pattern].measures.size()-1);
   step = clamp(step, 0, patterns[pattern].measures[measure].steps.size()-1);
@@ -351,6 +368,7 @@ void PatternData::toggleStepActive(int pattern, int measure, int step) {
 }
 
 void PatternData::setStepActive(int pattern, int measure, int step, bool active) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
   measure = clamp(measure, 0, patterns[pattern].measures.size()-1);
   step = clamp(step, 0, patterns[pattern].measures[measure].steps.size()-1);
@@ -362,6 +380,7 @@ void PatternData::setStepActive(int pattern, int measure, int step, bool active)
 }
 
 void PatternData::toggleStepRetrigger(int pattern, int measure, int step) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
   measure = clamp(measure, 0, patterns[pattern].measures.size()-1);
   step = clamp(step, 0, patterns[pattern].measures[measure].steps.size()-1);
@@ -392,6 +411,7 @@ bool PatternData::isStepRetriggered(int pattern, int measure, int step) const {
 }
 
 void PatternData::setStepRetrigger(int pattern, int measure, int step, bool retrigger) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
   measure = clamp(measure, 0, patterns[pattern].measures.size()-1);
   step = clamp(step, 0, patterns[pattern].measures[measure].steps.size()-1);
@@ -408,6 +428,7 @@ float PatternData::getStepVelocity(int pattern, int measure, int step) const {
 }
 
 void PatternData::increaseStepVelocityTo(int pattern, int measure, int step, float velocity) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
   measure = clamp(measure, 0, patterns[pattern].measures.size()-1);
   step = clamp(step, 0, patterns[pattern].measures[measure].steps.size()-1);
@@ -416,6 +437,7 @@ void PatternData::increaseStepVelocityTo(int pattern, int measure, int step, flo
 }
 
 void PatternData::setStepVelocity(int pattern, int measure, int step, float velocity) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
   measure = clamp(measure, 0, patterns[pattern].measures.size()-1);
   step = clamp(step, 0, patterns[pattern].measures[measure].steps.size()-1);
@@ -432,9 +454,17 @@ int PatternData::getStepPitch(int pattern, int measure, int step) const {
 }
 
 void PatternData::setStepPitch(int pattern, int measure, int step, int pitch) {
+  dirty = true;
   pattern = clamp(pattern, 0, patterns.size()-1);
   measure = clamp(measure, 0, patterns[pattern].measures.size()-1);
   step = clamp(step, 0, patterns[pattern].measures[measure].steps.size()-1);
 
   patterns[pattern].measures[measure].steps[step].pitch = pitch;
 }
+
+bool PatternData::consumeDirty() {
+  bool wasdirty = dirty;
+  dirty = false;
+  return wasdirty;
+}
+

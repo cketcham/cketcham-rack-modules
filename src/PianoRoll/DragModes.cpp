@@ -1,65 +1,43 @@
 #include "window.hpp"
 #include "../../include/PianoRoll/DragModes.hpp"
-#include "../../include/PianoRoll/PianoRollModule.hpp"
-#include "../../include/PianoRoll/PianoRollWidget.hpp"
+#include "../../include/PianoRoll/RollAreaWidget.hpp"
+#include "../../include/PianoRoll/Auditioner.hpp"
+#include "../../include/PianoRoll/PatternData.hpp"
+#include "../../include/PianoRoll/Transport.hpp"
 
 static const float VELOCITY_SENSITIVITY = 0.0015f;
 static const float KEYBOARDDRAG_SENSITIVITY = 0.1f;
-static const float COLOURDRAG_SENSITIVITY = 0.0015f;
 
-ModuleDragType::ModuleDragType(PianoRollWidget* widget, PianoRollModule* module) : widget(widget), module(module) {}
+PianoRollDragType::PianoRollDragType() {}
 
-ModuleDragType::~ModuleDragType() {}
+PianoRollDragType::~PianoRollDragType() {}
 
-ColourDragging::ColourDragging(PianoRollWidget* widget, PianoRollModule* module) : ModuleDragType(widget, module) {
-  windowCursorLock();
-}
 
-ColourDragging::~ColourDragging() {
-	windowCursorUnlock();
-}
-
-void ColourDragging::onDragMove(EventDragMove& e) {
-	float speed = 1.f;
-	float range = 1.f;
-
-	float delta = COLOURDRAG_SENSITIVITY * e.mouseRel.y * speed * range;
-	if (windowIsModPressed()) {
-		delta /= 16.f;
-	}
-
-	widget->backgroundHue = clamp(widget->backgroundHue + delta, 0.f, 1.f);
-}
-
-PlayPositionDragging::PlayPositionDragging(PianoRollWidget* widget, PianoRollModule* module): ModuleDragType(widget, module) {
-	setNote();
+PlayPositionDragging::PlayPositionDragging(Auditioner* auditioner, UnderlyingRollAreaWidget* widget, Transport* transport): auditioner(auditioner), widget(widget), transport(transport) {
+	setNote(Vec(0,0));
 }
 
 PlayPositionDragging::~PlayPositionDragging() {
-	module->auditioner.stop();
+	auditioner->stop();
 }
 
 void PlayPositionDragging::onDragMove(EventDragMove& e) {
-	setNote();
+	setNote(e.mouseRel);
 }
 
-void PlayPositionDragging::setNote() {
-  Rect roll = widget->getRollArea();
-  widget->reserveKeysArea(roll);
+void PlayPositionDragging::setNote(Vec mouseRel) {
+  Vec pos(widget->lastMouseDown.x + mouseRel.x, widget->lastMouseDown.y + mouseRel.y);
+	widget->lastMouseDown = pos;
 
-  Vec pos = gRackWidget->lastMousePos.minus(widget->box.pos);
-
-  if (!roll.contains(pos)) {
-		module->auditioner.stop();
-    return;
-  }
+	Rect roll(Vec(0,0), Vec(widget->box.size.x, widget->box.size.y));
+	widget->reserveKeysArea(roll);
 
   auto beatDivs = widget->getBeatDivs(roll);
   bool beatDivFound = false;
   BeatDiv cellBeatDiv;
 
   for (auto const& beatDiv: beatDivs) {
-    if (Rect(Vec(beatDiv.pos.x, 0), Vec(beatDiv.size.x, roll.size.y)).contains(pos)) {
+    if (Rect(Vec(beatDiv.pos.x, 0), Vec(beatDiv.size.x, widget->box.size.y)).contains(pos)) {
       cellBeatDiv = beatDiv;
       beatDivFound = true;
       break;
@@ -67,50 +45,53 @@ void PlayPositionDragging::setNote() {
   }
 
   if (beatDivFound) {
-    module->transport.setMeasure(widget->currentMeasure);
-    module->transport.setStepInMeasure(cellBeatDiv.num);
-    module->auditioner.start(module->transport.currentStepInPattern());
+    transport->setMeasure(widget->state->currentMeasure);
+    transport->setStepInMeasure(cellBeatDiv.num);
+    auditioner->start(transport->currentStepInPattern());
   } else {
-		module->auditioner.stop();
+		auditioner->stop();
   }
 }
 
-KeyboardDragging::KeyboardDragging(PianoRollWidget* widget, PianoRollModule* module) : ModuleDragType(widget, module) {
-  windowCursorLock();
-}
-
-KeyboardDragging::~KeyboardDragging() {
-  windowCursorUnlock();
-}
-
-LockMeasureDragging::LockMeasureDragging(PianoRollWidget* widget, PianoRollModule* module): ModuleDragType(widget, module) {
+LockMeasureDragging::LockMeasureDragging(WidgetState* state, Transport* transport) : state(state), transport(transport) {
 	longPressStart = std::chrono::high_resolution_clock::now();
-	widget->measureLockPressTime = 0.f;
+	state->measureLockPressTime = 0.f;
+	state->dirty = true;
 }
 
 LockMeasureDragging::~LockMeasureDragging() {
-	widget->measureLockPressTime = 0.f;
+	state->measureLockPressTime = 0.f;
+	state->dirty = true;
 }
 
 void LockMeasureDragging::onDragMove(EventDragMove &e) {
 	auto currTime = std::chrono::high_resolution_clock::now();
 	double pressTime = std::chrono::duration<double>(currTime - longPressStart).count();
-	widget->measureLockPressTime = clamp(pressTime, 0.f, 1.f);
+	state->measureLockPressTime = clamp(pressTime, 0.f, 1.f);
+	state->dirty = true;
 	if (pressTime >= 1.f) {
 
-		if (!module->transport.isLocked() || (module->transport.currentMeasure() != widget->currentMeasure)) {
-			module->transport.lockMeasure();
+		if (!transport->isLocked() || (transport->currentMeasure() != state->currentMeasure)) {
+			transport->lockMeasure();
 
-			if (module->transport.currentMeasure() != widget->currentMeasure) {
+			if (transport->currentMeasure() != state->currentMeasure) {
 				// We just locked the measure, but the play point is outside the selected measure - move the play point into the last note of the current measure
-				module->transport.setMeasure(widget->currentMeasure);
+				transport->setMeasure(state->currentMeasure);
 			}
 		} else {
-			module->transport.unlockMeasure();
+			transport->unlockMeasure();
 		}
 
 		longPressStart = std::chrono::high_resolution_clock::now();
 	}
+}
+
+KeyboardDragging::KeyboardDragging(WidgetState* state) : state(state) {
+  windowCursorLock();
+}
+
+KeyboardDragging::~KeyboardDragging() {
+  windowCursorUnlock();
 }
 
 void KeyboardDragging::onDragMove(EventDragMove& e) {
@@ -125,18 +106,20 @@ void KeyboardDragging::onDragMove(EventDragMove& e) {
 	offset += delta;
 
 	while (offset >= 1.f) {
-		widget->lowestDisplayNote = clamp(widget->lowestDisplayNote + 1, -1 * 12, 8 * 12);
+		state->lowestDisplayNote = clamp(state->lowestDisplayNote + 1, -1 * 12, 8 * 12);
+		state->dirty = true;
 		offset -= 1;
 	}
 
 	while (offset <= -1.f) {
-		widget->lowestDisplayNote = clamp(widget->lowestDisplayNote - 1, -1 * 12, 8 * 12);
+		state->lowestDisplayNote = clamp(state->lowestDisplayNote - 1, -1 * 12, 8 * 12);
+		state->dirty = true;
 		offset += 1;
 	}
 }
 
-NotePaintDragging::NotePaintDragging(PianoRollWidget* widget, PianoRollModule* module) : ModuleDragType(widget, module) {
-	Vec pos = gRackWidget->lastMousePos.minus(widget->box.pos);
+NotePaintDragging::NotePaintDragging(UnderlyingRollAreaWidget* widget, PatternData* patternData, Transport* transport, Auditioner* auditioner) : widget(widget), patternData(patternData), transport(transport), auditioner(auditioner) {
+  Vec pos = widget->lastMouseDown;
 
 	std::tuple<bool, BeatDiv, Key> cell = widget->findCell(pos);
 	if (!std::get<0>(cell)) {
@@ -146,8 +129,8 @@ NotePaintDragging::NotePaintDragging(PianoRollWidget* widget, PianoRollModule* m
 	int beatDiv = std::get<1>(cell).num;
 	int pitch = std::get<2>(cell).pitch();
 
-	if (pitch == module->patternData.getStepPitch(module->transport.currentPattern(), widget->currentMeasure, beatDiv)) {
-		makeStepsActive = !module->patternData.isStepActive(module->transport.currentPattern(), widget->currentMeasure, beatDiv);
+	if (pitch == patternData->getStepPitch(transport->currentPattern(), widget->state->currentMeasure, beatDiv)) {
+		makeStepsActive = !patternData->isStepActive(transport->currentPattern(), widget->state->currentMeasure, beatDiv);
 	} else {
 		makeStepsActive = true;
 	}
@@ -155,16 +138,17 @@ NotePaintDragging::NotePaintDragging(PianoRollWidget* widget, PianoRollModule* m
 
 NotePaintDragging::~NotePaintDragging() {
 	if (makeStepsActive) {
-		module->auditioner.stop();
+		auditioner->stop();
 	}
 }
 
 void NotePaintDragging::onDragMove(EventDragMove& e) {
-	Vec pos = gRackWidget->lastMousePos.minus(widget->box.pos);
+  Vec pos(widget->lastMouseDown.x + e.mouseRel.x, widget->lastMouseDown.y + e.mouseRel.y);
+	widget->lastMouseDown = pos;
 
 	std::tuple<bool, BeatDiv, Key> cell = widget->findCell(pos);
 	if (!std::get<0>(cell)) {
-		module->auditioner.stop();
+		auditioner->stop();
 		return;
 	}
 
@@ -175,40 +159,53 @@ void NotePaintDragging::onDragMove(EventDragMove& e) {
 		lastDragBeatDiv = beatDiv;
 		lastDragPitch = pitch;
 		if (makeStepsActive) {
-			bool wasAlreadyActive = module->patternData.isStepActive(module->transport.currentPattern(), widget->currentMeasure, beatDiv);
-			module->patternData.setStepActive(module->transport.currentPattern(), widget->currentMeasure, beatDiv, true);
-			module->patternData.setStepPitch(module->transport.currentPattern(), widget->currentMeasure, beatDiv, pitch);
+			bool wasAlreadyActive = patternData->isStepActive(transport->currentPattern(), widget->state->currentMeasure, beatDiv);
+			patternData->setStepActive(transport->currentPattern(), widget->state->currentMeasure, beatDiv, true);
+			patternData->setStepPitch(transport->currentPattern(), widget->state->currentMeasure, beatDiv, pitch);
 			
 			if (!wasAlreadyActive) {
-				module->patternData.setStepVelocity(module->transport.currentPattern(), widget->currentMeasure, beatDiv, 0.75);
+				patternData->setStepVelocity(transport->currentPattern(), widget->state->currentMeasure, beatDiv, 0.75);
 			}
 
-			module->patternData.adjustVelocity(module->transport.currentPattern(), widget->currentMeasure, beatDiv, 0.f);
+			patternData->adjustVelocity(transport->currentPattern(), widget->state->currentMeasure, beatDiv, 0.f);
 
-			module->auditioner.start(beatDiv + (module->patternData.getStepsPerMeasure(module->transport.currentPattern()) * widget->currentMeasure));
-			module->auditioner.retrigger();
+			auditioner->start(beatDiv + (patternData->getStepsPerMeasure(transport->currentPattern()) * widget->state->currentMeasure));
+			auditioner->retrigger();
 		} else {
-			module->patternData.setStepActive(module->transport.currentPattern(), widget->currentMeasure, beatDiv, false);
-	    module->patternData.setStepRetrigger(module->transport.currentPattern(), widget->currentMeasure, beatDiv, false);
+			patternData->setStepActive(transport->currentPattern(), widget->state->currentMeasure, beatDiv, false);
+	    patternData->setStepRetrigger(transport->currentPattern(), widget->state->currentMeasure, beatDiv, false);
 		}
 	};
 }
 
-VelocityDragging::VelocityDragging(PianoRollWidget* widget, PianoRollModule* module, int pattern, int measure, int division) 
-  :ModuleDragType(widget, module), 
-    pattern(pattern),
+VelocityDragging::VelocityDragging(UnderlyingRollAreaWidget* widget, PatternData* patternData, Transport* transport, WidgetState* state, int pattern, int measure, int division) 
+  : widget(widget),
+		patternData(patternData),
+		transport(transport),
+		state(state),
+		pattern(pattern),
     measure(measure),
     division(division) {
   windowCursorLock();
+
+	Rect roll(Vec(0,0), Vec(widget->box.size.x, widget->box.size.y));
+	widget->reserveKeysArea(roll);
+
+	roll.size.y = roll.size.y / 2.f;
+	showLow = roll.contains(widget->lastMouseDown);
 }
 
 VelocityDragging::~VelocityDragging() {
 	windowCursorUnlock();
-	widget->displayVelocityHigh = -1;
-	widget->displayVelocityLow = -1;
+	state->displayVelocityHigh = -1;
+	state->displayVelocityLow = -1;
+	state->dirty = true;
 }
 
 void VelocityDragging::onDragMove(EventDragMove& e) {
+  Vec pos(widget->lastMouseDown.x + e.mouseRel.x, widget->lastMouseDown.y + e.mouseRel.y);
+	widget->lastMouseDown = pos;
+
 	float speed = 1.f;
 	float range = 1.f;
 	float delta = VELOCITY_SENSITIVITY * -e.mouseRel.y * speed * range;
@@ -216,22 +213,13 @@ void VelocityDragging::onDragMove(EventDragMove& e) {
 		delta /= 16.f;
 	}
 
-	float newVelocity = module->patternData.adjustVelocity(module->transport.currentPattern(), measure, division, delta);
-
-	Rect roll = widget->getRollArea();
-	roll.size.y = roll.size.y / 2.f;
-	if (roll.contains(widget->dragPos)) {
-		widget->displayVelocityHigh = -1;
-		widget->displayVelocityLow = newVelocity;
+	float newVelocity = patternData->adjustVelocity(transport->currentPattern(), measure, division, delta);
+	if (showLow) {
+		state->displayVelocityHigh = -1;
+		state->displayVelocityLow = newVelocity;
 	} else {
-		widget->displayVelocityHigh = newVelocity;
-		widget->displayVelocityLow = -1;
+		state->displayVelocityHigh = newVelocity;
+		state->displayVelocityLow = -1;
 	}
-}
-
-StandardModuleDragging::StandardModuleDragging(PianoRollWidget* widget, PianoRollModule* module) : ModuleDragType(widget, module) {}
-StandardModuleDragging::~StandardModuleDragging() {}
-
-void StandardModuleDragging::onDragMove(EventDragMove& e) {
-	widget->baseDragMove(e);
+	state->dirty = true;
 }

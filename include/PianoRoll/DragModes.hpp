@@ -1,78 +1,86 @@
 #include "rack.hpp"
+#include "../ModuleDragType.hpp"
 
 using namespace rack;
 
-struct PianoRollModule;
-struct PianoRollWidget;
+struct Auditioner;
+struct PatternData;
+struct Transport;
+struct WidgetState;
+struct UnderlyingRollAreaWidget;
 
-struct ModuleDragType {
-	PianoRollWidget* widget;
-	PianoRollModule* module;
-
-	ModuleDragType(PianoRollWidget* widget, PianoRollModule* module);
-	virtual ~ModuleDragType();
-
-	virtual void onDragMove(EventDragMove& e) = 0;
+struct PianoRollDragType : ModuleDragType {
+	PianoRollDragType();
+	virtual ~PianoRollDragType();
 };
 
-struct ColourDragging : public ModuleDragType {
-	ColourDragging(PianoRollWidget* widget, PianoRollModule* module);
-	virtual ~ColourDragging();
 
-	void onDragMove(EventDragMove& e) override;
-};
+struct PlayPositionDragging : public PianoRollDragType {
+	Auditioner* auditioner;
+	UnderlyingRollAreaWidget* widget;
+	Transport* transport;
 
-struct PlayPositionDragging : public ModuleDragType {
-	PlayPositionDragging(PianoRollWidget* widget, PianoRollModule* module);
+	PlayPositionDragging(Auditioner* auditioner, UnderlyingRollAreaWidget* widget, Transport* transport);
 	virtual ~PlayPositionDragging();
 
-	void setNote();
+	void setNote(Vec mouseRel);
 	void onDragMove(EventDragMove& e) override;
 };
 
-struct LockMeasureDragging : public ModuleDragType {
+struct LockMeasureDragging : public PianoRollDragType {
 	std::chrono::_V2::system_clock::time_point longPressStart;
-	LockMeasureDragging(PianoRollWidget* widget, PianoRollModule* module);
+
+	WidgetState* state;
+	Transport* transport;
+
+	LockMeasureDragging(WidgetState* state, Transport* transport);
 	virtual ~LockMeasureDragging();
 
 	void onDragMove(EventDragMove& e) override;
 };
 
-struct KeyboardDragging : public ModuleDragType {
+struct KeyboardDragging : public PianoRollDragType {
 	float offset = 0;
+	WidgetState* state;
 
-  KeyboardDragging(PianoRollWidget* widget, PianoRollModule* module);
+  KeyboardDragging(WidgetState* state);
   virtual ~KeyboardDragging();
 
 	void onDragMove(EventDragMove& e) override;
 };
 
-struct NotePaintDragging : public ModuleDragType {
+struct NotePaintDragging : public PianoRollDragType {
 	int lastDragBeatDiv = -1000;
 	int lastDragPitch = -1000;
 	bool makeStepsActive = true;
 
-	NotePaintDragging(PianoRollWidget* widget, PianoRollModule* module);
+	UnderlyingRollAreaWidget* widget;
+	PatternData* patternData;
+	Transport* transport;
+	Auditioner* auditioner;
+
+	NotePaintDragging(UnderlyingRollAreaWidget* widget, PatternData* patternData, Transport* transport, Auditioner* auditioner);
 	virtual ~NotePaintDragging();
 
 	void onDragMove(EventDragMove& e) override;
 };
 
-struct VelocityDragging : public ModuleDragType {
+struct VelocityDragging : public PianoRollDragType {
+	UnderlyingRollAreaWidget* widget;
+	PatternData* patternData;
+	Transport* transport;
+	WidgetState* state;
+
   int pattern;
 	int measure;
 	int division;
 
-	VelocityDragging(PianoRollWidget* widget, PianoRollModule* module, int pattern, int measure, int division);
+	bool showLow = false;
+
+	VelocityDragging(UnderlyingRollAreaWidget* widget, PatternData* patternData, Transport* transport, WidgetState* state, int pattern, int measure, int division);
 	virtual  ~VelocityDragging();
 
 	void onDragMove(EventDragMove& e) override;
 };
 
-struct StandardModuleDragging : public ModuleDragType {
-	StandardModuleDragging(PianoRollWidget* widget, PianoRollModule* module);
-	virtual ~StandardModuleDragging();
-
-	void onDragMove(EventDragMove& e) override;
-};
 

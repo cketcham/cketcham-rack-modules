@@ -27,7 +27,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.98"
-     inkscape:cx="108.47882"
+     inkscape:cx="-147.58179"
      inkscape:cy="190.20735"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -3942,21 +3942,28 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer5"
+     inkscape:label="Colour"
+     style="display:none">
+    <path
+       transform="translate(0,-196.4583)"
+       style="display:inline;opacity:1;vector-effect:none;fill:#9b2aff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.44371992;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal;filter:url(#filter6152);enable-background:new"
+       d="M 0,196.45831 H 19.843752 V 297 H 0 Z"
+       id="rect817"
+       inkscape:connector-curvature="0" />
+  </g>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-196.4583)"
      style="display:inline;opacity:1;filter:url(#filter6152)">
-    <path
-       style="opacity:1;vector-effect:none;fill:#9b2aff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.44371992;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
-       d="M 0,196.45831 H 19.843752 V 297 H 0 Z"
-       id="rect817"
-       inkscape:connector-curvature="0" />
     <g
        aria-label="Sine"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:6.61458302px;font-family:DINPro;-inkscape-font-specification:DINPro;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -4036,7 +4043,7 @@
        x="-0.66145831"
        y="195.79686" />
     <rect
-       style="opacity:0.169;fill:url(#linearGradient4657);fill-opacity:1;stroke-width:0.27386978"
+       style="opacity:0.3;fill:url(#linearGradient4657);fill-opacity:1;stroke-width:0.27386978"
        id="rect4649"
        width="19.843752"
        height="66.145844"
@@ -4734,53 +4741,33 @@
       <path
          d="m 5.8201679,200.47791 c -0.046567,0.32173 -0.2540007,0.56303 -0.601135,0.56303 -0.3175009,0 -0.5969017,-0.2667 -0.5969017,-0.58843 0,-0.3175 0.2624674,-0.60537 0.5926684,-0.60537 0.2836341,0 0.4656679,0.1651 0.5799682,0.41063 l 0.8974692,-0.0593 c -0.1651005,-0.71967 -0.711202,-1.23614 -1.4732041,-1.23614 -0.7874022,0 -1.4774374,0.67734 -1.4774374,1.46897 0,0.81704 0.6519351,1.49437 1.4774374,1.49437 0.4826013,0 0.9652027,-0.2413 1.2276701,-0.65193 0.1524004,-0.23284 0.2201339,-0.50377 0.2540007,-0.77471 z"
          style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:4.23334503px;font-family:Blippo;-inkscape-font-specification:'Blippo, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458406"
-         id="path11486" />
+         id="path11486"
+         inkscape:connector-curvature="0" />
       <path
          d="M 9.2518231,199.0301 H 8.2315869 l -0.245534,0.86784 -0.258234,-0.86784 h -0.969436 l 1.2107366,2.98451 z"
          style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:4.23334503px;font-family:Blippo;-inkscape-font-specification:'Blippo, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458406"
-         id="path11488" />
+         id="path11488"
+         inkscape:connector-curvature="0" />
       <path
          d="m 11.911092,199.83444 h 0.635001 v -0.80434 h -2.120905 v 0.80434 h 0.643468 v 2.0193 h 0.842436 z"
          style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:4.23334503px;font-family:Blippo;-inkscape-font-specification:'Blippo, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458406"
-         id="path11490" />
+         id="path11490"
+         inkscape:connector-curvature="0" />
       <path
          d="m 13.960096,201.00284 c -0.0508,0.0296 -0.09737,0.0466 -0.1524,0.0466 -0.156634,0 -0.279401,-0.127 -0.279401,-0.28364 0,-0.14393 0.131234,-0.28363 0.279401,-0.28363 0.194734,0 0.2794,0.1524 0.2794,0.32597 v 0.84667 c 0,0.25823 -0.2286,0.4572 -0.482601,0.4572 -0.09737,0 -0.1905,-0.0339 -0.275167,-0.0804 v 0.70274 c 0.127,0.0423 0.254,0.0762 0.385234,0.0762 0.622302,0 1.159937,-0.52917 1.159937,-1.1557 v -0.84667 c 0,-0.59267 -0.495302,-1.05834 -1.083737,-1.05834 -0.550335,0 -1.045636,0.4699 -1.045636,1.0287 0,0.51647 0.338668,0.99484 0.893236,0.99484 0.110067,0 0.2159,-0.0212 0.321734,-0.0593 z"
          style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:4.23334503px;font-family:Blippo;-inkscape-font-specification:'Blippo, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458406"
-         id="path11492" />
+         id="path11492"
+         inkscape:connector-curvature="0" />
       <path
          d="m 16.102103,199.0301 h -0.774702 v 2.82364 h 0.774702 z"
          style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:4.23334503px;font-family:Blippo;-inkscape-font-specification:'Blippo, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.26458406"
-         id="path11494" />
-    </g>
-    <g
-       id="Page-1"
-       transform="matrix(0.26458336,0,0,0.26458336,48.742135,210.45716)"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
-       inkscape:tile-cx="72.025462"
-       inkscape:tile-cy="31.990533"
-       inkscape:tile-w="4.2333333"
-       inkscape:tile-h="4.2333333"
-       inkscape:tile-x0="69.908795"
-       inkscape:tile-y0="29.873867">
-      <g
-         id="dots"
-         style="fill:#000000">
-        <circle
-           r="3"
-           cy="3"
-           cx="3"
-           id="Oval-377-Copy-9" />
-        <circle
-           r="3"
-           cy="13"
-           cx="13"
-           id="Oval-377-Copy-14" />
-      </g>
+         id="path11494"
+         inkscape:connector-curvature="0" />
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,0.422265,231.90177)"
        id="use11579">
       <g
@@ -4790,20 +4777,18 @@
            id="circle11655"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11657"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,0.422265,236.13511)"
        id="use11581">
       <g
@@ -4813,20 +4798,18 @@
            id="circle11663"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11665"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,0.422265,240.36844)"
        id="use11583">
       <g
@@ -4836,20 +4819,18 @@
            id="circle11671"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11673"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,0.422265,244.60177)"
        id="use11585">
       <g
@@ -4859,20 +4840,18 @@
            id="circle11679"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11681"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,0.422265,248.83511)"
        id="use11587">
       <g
@@ -4882,20 +4861,18 @@
            id="circle11687"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11689"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,0.422265,253.06844)"
        id="use11589">
       <g
@@ -4905,20 +4882,18 @@
            id="circle11695"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11697"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,5.290598,231.90177)"
        id="use11593">
       <g
@@ -4928,20 +4903,18 @@
            id="circle11711"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11713"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,5.290598,236.13511)"
        id="use11595">
       <g
@@ -4951,20 +4924,18 @@
            id="circle11719"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11721"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,5.290598,240.36844)"
        id="use11597">
       <g
@@ -4974,20 +4945,18 @@
            id="circle11727"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11729"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,5.290598,244.60177)"
        id="use11599">
       <g
@@ -4997,20 +4966,18 @@
            id="circle11735"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11737"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,5.290598,248.83511)"
        id="use11601">
       <g
@@ -5020,20 +4987,18 @@
            id="circle11743"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11745"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,5.290598,253.06844)"
        id="use11603">
       <g
@@ -5043,20 +5008,18 @@
            id="circle11751"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11753"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,10.158931,231.90177)"
        id="use11607">
       <g
@@ -5066,20 +5029,18 @@
            id="circle11767"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11769"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,10.158931,236.13511)"
        id="use11609">
       <g
@@ -5089,20 +5050,18 @@
            id="circle11775"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11777"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,10.158931,240.36844)"
        id="use11611">
       <g
@@ -5112,20 +5071,18 @@
            id="circle11783"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11785"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,10.158931,244.60177)"
        id="use11613">
       <g
@@ -5135,20 +5092,18 @@
            id="circle11791"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11793"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,10.158931,248.83511)"
        id="use11615">
       <g
@@ -5158,20 +5113,18 @@
            id="circle11799"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11801"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,10.158931,253.06844)"
        id="use11617">
       <g
@@ -5181,20 +5134,18 @@
            id="circle11807"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11809"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,15.027264,231.90177)"
        id="use11621">
       <g
@@ -5204,20 +5155,18 @@
            id="circle11823"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11825"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,15.027264,236.13511)"
        id="use11623">
       <g
@@ -5227,20 +5176,18 @@
            id="circle11831"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11833"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,15.027264,240.36844)"
        id="use11625">
       <g
@@ -5250,20 +5197,18 @@
            id="circle11839"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11841"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,15.027264,244.60177)"
        id="use11627">
       <g
@@ -5273,20 +5218,18 @@
            id="circle11847"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11849"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,15.027264,248.83511)"
        id="use11629">
       <g
@@ -5296,20 +5239,18 @@
            id="circle11855"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11857"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
     <g
        inkscape:tile-y0="29.873867"
        inkscape:tile-x0="69.908795"
-       style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1;opacity:0.265"
+       style="opacity:0.26499999;fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
        transform="matrix(0.26458336,0,0,0.26458336,15.027264,253.06844)"
        id="use11631">
       <g
@@ -5319,14 +5260,12 @@
            id="circle11863"
            cx="3"
            cy="3"
-           r="3"
-           style="" />
+           r="3" />
         <circle
            id="circle11865"
            cx="13"
            cy="13"
-           r="3"
-           style="" />
+           r="3" />
       </g>
     </g>
   </g>

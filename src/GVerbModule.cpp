@@ -1,4 +1,6 @@
 #include "GVerbWidget.hpp"
+#include "../include/BaseWidget.hpp"
+
 extern "C" 
 {
 	#include "../include/gverb.h"
@@ -232,8 +234,13 @@ void GVerbModule::step() {
 	}
 }
 
-struct GVerbModuleWidget : ModuleWidget {
-	GVerbModuleWidget(GVerbModule *module) : ModuleWidget(module) {
+struct GVerbModuleWidget : BaseWidget {
+	GVerbModuleWidget(GVerbModule *module) : BaseWidget(module) {
+		colourHotZone = Rect(Vec(111.572, 10), Vec(46.856, 13));
+		backgroundHue = 0.06667f;
+		backgroundSaturation = 1.f;
+		backgroundLuminosity = 0.58f;
+
 		setPanel(SVG::load(assetPlugin(plugin, "res/Reverb.svg")));
 
 		addParam(ParamWidget::create<Davies1900hLargeWhiteKnob>(Vec(50, 44), module, GVerbModule::ROOM_SIZE_PARAM, 2.0, 300.0, 20.0));

@@ -1,4 +1,5 @@
 #include "GVerbWidget.hpp"
+#include "../include/BaseWidget.hpp"
 
 struct CVS0to10Module : Module {
 	enum ParamIds {
@@ -39,10 +40,15 @@ void CVS0to10Module::step() {
 	outputs[CV_OUTPUT_D].value = params[AMOUNT_PARAM_D].value;
 }
 
-struct CVS0to10ModuleWidget : ModuleWidget {
+struct CVS0to10ModuleWidget : BaseWidget {
     TextField *textField;
 
-	CVS0to10ModuleWidget(CVS0to10Module *module) : ModuleWidget(module) {
+	CVS0to10ModuleWidget(CVS0to10Module *module) : BaseWidget(module) {
+		colourHotZone = Rect(Vec(10, 10), Vec(50, 13));
+		backgroundHue = 0.754;
+		backgroundSaturation = 1.f;
+		backgroundLuminosity = 0.58f;
+
 		setPanel(SVG::load(assetPlugin(plugin, "res/CVS0to10.svg")));
 
         auto x = 6.f;
@@ -65,7 +71,7 @@ struct CVS0to10ModuleWidget : ModuleWidget {
 	}
 
 	json_t *toJson() override {
-		json_t *rootJ = ModuleWidget::toJson();
+		json_t *rootJ = BaseWidget::toJson();
 
 		// text
 		json_object_set_new(rootJ, "text", json_string(textField->text.c_str()));
@@ -74,7 +80,7 @@ struct CVS0to10ModuleWidget : ModuleWidget {
 	}
 
 	void fromJson(json_t *rootJ) override {
-		ModuleWidget::fromJson(rootJ);
+		BaseWidget::fromJson(rootJ);
 
 		// text
 		json_t *textJ = json_object_get(rootJ, "text");

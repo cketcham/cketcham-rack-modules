@@ -7,7 +7,7 @@ SLUG = rcm
 
 # Must follow the format in the Versioning section of
 # https://vcvrack.com/manual/PluginDevelopmentTutorial.html
-VERSION = 0.6.8
+VERSION = 0.6.9
 
 # FLAGS will be passed to both the C and C++ compiler
 #FLAGS += -Idep/openmpt-libopenmpt-0.3.10/soundlib -Idep/openmpt-libopenmpt-0.3.10/common
@@ -20,7 +20,7 @@ CXXFLAGS +=
 #LDFLAGS = -Ldep 
 
 # Add .cpp and .c files to the build
-SOURCES += $(wildcard src/*.cpp) $(wildcard src/PianoRoll/*.cpp) $(wildcard src/*.c)
+SOURCES += $(wildcard src/*.cpp) $(wildcard src/**/*.cpp) $(wildcard src/*.c)
 
 # Add files to the ZIP package when running `make dist`
 # The compiled plugin is automatically added.

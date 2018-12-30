@@ -28,7 +28,7 @@ struct PlayPositionDragging : public PianoRollDragType {
 };
 
 struct LockMeasureDragging : public PianoRollDragType {
-	std::chrono::_V2::system_clock::time_point longPressStart;
+	std::chrono::time_point<std::chrono::high_resolution_clock> longPressStart;
 
 	WidgetState* state;
 	Transport* transport;

@@ -61,7 +61,10 @@ void PianoRollModule::fromJson(json_t *rootJ) {
 
 int quantizePitch(float voct) {
 	int oct = floor(voct);
-	int note = floor((voct - oct) * 12);
+	int note = abs(static_cast<int>( roundf( ( voct * 12.0f) ) ) ) % 12;
+	if (voct < 0.0f && note > 0) {
+		note = 12 - note;
+	}
 
 	return ((oct + 4) * 12) + note;
 }

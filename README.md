@@ -76,7 +76,7 @@ The Spread feature cannot be modified without recreating the engine, so it's fix
 
 The output is normalised using an internal envelope following, because the output gets crazy high voltages otherwise. This follower can generate its own effects at times when things are out of hand.
 
-## Audio 16
+## Interface 16
 
 Steve Baker's version of the Audio module that supports audio devices with up to 16 inputs and outputs.
 

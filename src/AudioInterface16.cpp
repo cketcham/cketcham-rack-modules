@@ -250,11 +250,6 @@ struct AudioInterfaceWidget16 : ModuleWidget {
 	AudioInterfaceWidget16(AudioInterface16 *module) : ModuleWidget(module) {
 		setPanel(SVG::load(assetPlugin(plugin, "res/AudioInterface16_Plastic.svg")));
 
-		// addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		// addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		// addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		// addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-
 		addInput(Port::create<PJ301MPort>(mm2px(Vec(3.7069211, 55.530807)), Port::INPUT, module, AudioInterface16::AUDIO_INPUT + 0));
 		addInput(Port::create<PJ301MPort>(mm2px(Vec(15.307249, 55.530807)), Port::INPUT, module, AudioInterface16::AUDIO_INPUT + 1));
 		addInput(Port::create<PJ301MPort>(mm2px(Vec(26.906193, 55.530807)), Port::INPUT, module, AudioInterface16::AUDIO_INPUT + 2));
@@ -316,5 +311,4 @@ struct AudioInterfaceWidget16 : ModuleWidget {
 
 };
 
-
-Model *modelAudioInterface16 = Model::create<AudioInterface16, AudioInterfaceWidget16>("rcm", "AudioInterface16", "Interface 16", EXTERNAL_TAG);
+Model *modelAudioInterface16 = Model::create<AudioInterface16, AudioInterfaceWidget16>("rcm", "AudioInterface16", "Audio Interface 16", EXTERNAL_TAG);

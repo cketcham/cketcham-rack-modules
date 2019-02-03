@@ -89,13 +89,19 @@ void PianoRollModule::step() {
 	}
 
 	bool clockTick = false;
-	
+	float currentClockLevel = 0.f;
+
 	while((int)clockBuffer.size() > clockDelay) {
-		clockTick = clockInputTrigger.process(clockBuffer.shift());
+		currentClockLevel = clockBuffer.shift();
+		clockTick |= clockInputTrigger.process(currentClockLevel);
 	}
 
 	if (runInputTrigger.process(inputs[RUN_INPUT].value)) {
 		transport.toggleRun();
+
+		if (currentClockLevel > 1.f) {
+			clockTick = true;
+		}
 
 		if (!transport.isRunning()) {
 			gateOutputPulse.reset();

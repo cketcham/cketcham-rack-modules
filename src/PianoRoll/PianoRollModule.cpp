@@ -70,9 +70,25 @@ int quantizePitch(float voct) {
 }
 
 void PianoRollModule::step() {
+	bool clockTick = false;
+
+	while((int)clockBuffer.size() <= clockDelay) {
+		clockBuffer.push(inputs[CLOCK_INPUT].value);
+	}
+
+	float currentClockLevel = 0.f;
+
+	while((int)clockBuffer.size() > clockDelay) {
+		currentClockLevel = clockBuffer.shift();
+		clockTick |= clockInputTrigger.process(currentClockLevel);
+	}
+
 	if (resetInputTrigger.process(inputs[RESET_INPUT].value)) {
     transport.reset();
 		gateOutputPulse.reset();
+		if (currentClockLevel > 1.f) {
+			clockTick = true;
+		}
 	}
 
 	if (inputs[PATTERN_INPUT].active) {
@@ -82,18 +98,6 @@ void PianoRollModule::step() {
 
 	if (recordingIn.process(inputs[RECORD_INPUT].value)) {
     transport.toggleRecording();
-	}
-
-	while((int)clockBuffer.size() <= clockDelay) {
-		clockBuffer.push(inputs[CLOCK_INPUT].value);
-	}
-
-	bool clockTick = false;
-	float currentClockLevel = 0.f;
-
-	while((int)clockBuffer.size() > clockDelay) {
-		currentClockLevel = clockBuffer.shift();
-		clockTick |= clockInputTrigger.process(currentClockLevel);
 	}
 
 	if (runInputTrigger.process(inputs[RUN_INPUT].value)) {

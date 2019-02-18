@@ -53,6 +53,7 @@ struct NotePaintDragging : public PianoRollDragType {
 	int lastDragBeatDiv = -1000;
 	int lastDragPitch = -1000;
 	bool makeStepsActive = true;
+	int retriggerBeatDiv = 0;
 
 	UnderlyingRollAreaWidget* widget;
 	PatternData* patternData;

@@ -129,6 +129,11 @@ NotePaintDragging::NotePaintDragging(UnderlyingRollAreaWidget* widget, PatternDa
 	int beatDiv = std::get<1>(cell).num;
 	int pitch = std::get<2>(cell).pitch();
 
+	bool wasAlreadyActive = patternData->isStepActive(transport->currentPattern(), widget->state->currentMeasure, beatDiv);
+	bool wasAlreadyRetriggered = patternData->isStepRetriggered(transport->currentPattern(), widget->state->currentMeasure, beatDiv);
+
+	retriggerBeatDiv = !wasAlreadyActive || wasAlreadyRetriggered ? beatDiv : -1;
+
 	if (pitch == patternData->getStepPitch(transport->currentPattern(), widget->state->currentMeasure, beatDiv)) {
 		makeStepsActive = !patternData->isStepActive(transport->currentPattern(), widget->state->currentMeasure, beatDiv);
 	} else {
@@ -160,9 +165,17 @@ void NotePaintDragging::onDragMove(EventDragMove& e) {
 		lastDragPitch = pitch;
 		if (makeStepsActive) {
 			bool wasAlreadyActive = patternData->isStepActive(transport->currentPattern(), widget->state->currentMeasure, beatDiv);
+
 			patternData->setStepActive(transport->currentPattern(), widget->state->currentMeasure, beatDiv, true);
 			patternData->setStepPitch(transport->currentPattern(), widget->state->currentMeasure, beatDiv, pitch);
 			
+			if (beatDiv < retriggerBeatDiv) {
+				patternData->setStepRetrigger(transport->currentPattern(), widget->state->currentMeasure, retriggerBeatDiv, false);
+				retriggerBeatDiv = beatDiv;
+			}
+
+			patternData->setStepRetrigger(transport->currentPattern(), widget->state->currentMeasure, beatDiv, beatDiv == retriggerBeatDiv);
+
 			if (!wasAlreadyActive) {
 				patternData->setStepVelocity(transport->currentPattern(), widget->state->currentMeasure, beatDiv, 0.75);
 			}

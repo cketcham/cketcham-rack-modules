@@ -7,3 +7,4 @@
 dep/libopenmpt-0.3.10*
 *.mod
 *.xm
+.vscode/ipch

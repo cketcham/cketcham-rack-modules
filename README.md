@@ -63,6 +63,23 @@ The recording inputs can have other uses. For example, you could have a blank pa
 
 Piano Rolls can be chained together for chords or other effects. The inputs on the left (`clk`, `reset`, `ptrn`, `run`, `rec`) are mirrored to the outputs below.
 
+## SEQ Adapter
+
+This module fixes the behaviour of some sequencers that skip or fail to sound the first step of their sequence when their clock is started after a reset.
+
+Simple sequencers (like SEQ-3) normally skip the first step in their sequence when you stop the clock, reset, then start the clock again. This can fail to sound the first step and possibly put the sequencer out of sync with other modules in the patch.
+
+The `SEQ Adapter` takes the `run`, `reset` and `clock` outputs from the clock module. It then creates its own `reset` and `clock` outputs which are used by the simple sequencers. These are timed in such a way that the first steps are sounded by the sequencers and they are kept in sync with the rest of the patch.
+
+The `SEQ Adapter` works by detecting when a reset has been triggered when the clock isn't running. When that happens, instead of forwarding the reset signal, it arms the module. When armed, the next `clock` signal received gets duplicated to the `reset` output. This has the effect that when you start the clock, the module is reset to the start of the sequence with the clock active. For most modules, this means that we start playing on the first step. SEQ-3 in this case will output the first gate. Hora drum sequencer will play the first drum step, etc.
+
+This does rely on the sequencers handling simultaneous `reset` and `clock` inputs correctly, so your mileage may still vary.
+
+Resetting while the patch is running should work exactly as it does now - the `reset` and `clock` inputs are simply duplicated to the outputs.
+
+With Impromptu's Clocked module, it actually works slighly better if the `Outputs reset high when not running` option is turned off. This will ensure that SEQ-3 will sound its gate, whereas it might sometimes miss it if this option is turned on (it's on by default).
+
+
 ## Reverb
 
 Based on the GVerb GPL'd reverb code.

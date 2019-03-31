@@ -83,6 +83,7 @@ struct SEQAdapterModule : Module {
 
   bool running = false;
   bool redirectNextClk = false;
+	bool receivedClockWhenStopped = false;
 
 	// For more advanced Module features, read Rack's engine.hpp header file
 	// - toJson, fromJson: serialization of internal data
@@ -98,21 +99,18 @@ void SEQAdapterModule::step() {
 
   if (runTriggered) {
     running = !running;
-		debug("Running is now %d", running);
+		receivedClockWhenStopped = false;
   }
   else if (clkReset && !resetTriggered) {
-		if (!running) {
-			debug("Forcing run state");
+		if (receivedClockWhenStopped) {
+	    running = true;
+		} else {
+			receivedClockWhenStopped = true;
 		}
-		if (redirectNextClk) {
-			debug("Forcing cancel of redirect");
-		}
-    running = true;
     redirectNextClk = false;
   }
 
   if (resetTriggered && !running) {
-		debug("Redirect next clk");
     redirectNextClk = true;
   }
 
@@ -132,7 +130,7 @@ struct SEQAdapterModuleWidget : BaseWidget {
 
 	SEQAdapterModuleWidget(SEQAdapterModule *module) : BaseWidget(module) {
 		colourHotZone = Rect(Vec(10, 10), Vec(100, 13));
-		backgroundHue = 0;
+		backgroundHue = 0.528;
 		backgroundSaturation = 0.6f;
 		backgroundLuminosity = 0.4f;
 

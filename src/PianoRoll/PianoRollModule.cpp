@@ -103,7 +103,7 @@ void PianoRollModule::step() {
 	if (runInputTrigger.process(inputs[RUN_INPUT].value)) {
 		transport.toggleRun();
 
-		if (currentClockLevel > 1.f) {
+		if (currentClockLevel > 1.f && transport.currentStepInPattern() == -1) {
 			clockTick = true;
 		}
 

@@ -1,6 +1,8 @@
 
 # RCM plugins
 
+![pack](/res/screenshot.png?raw=true "pack")
+
 ## Piano Roll
 
 A monophonic quantized sequencer. With `1v/oct`, `gate`, `retrigger` & `velocity` outputs. 64 patterns with up to 16 measures per pattern, up to 16 beats per measure and up to 16 divisions per beat. `EOP` will trigger when the last note in the pattern has been triggered. Patterns always loop (currently).

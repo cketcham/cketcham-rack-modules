@@ -234,11 +234,10 @@ void ExpertSleepers3::step() {
 		audioIO.audioCv.notify_one();
 	}
 
-	// Turn on light if at least one port is enabled in the nearby pair
 	for (int i = 0; i < AUDIO_INPUTS / 2; i++)
-		lights[INPUT_LIGHT + i].value = (audioIO.active && audioIO.numOutputs >= 2*i+1);
+		lights[INPUT_LIGHT + i].setBrightnessSmooth(fmaxf(0.0f, inputs[AUDIO_INPUT + i + 8].value));
 	for (int i = 0; i < AUDIO_OUTPUTS / 2; i++)
-		lights[OUTPUT_LIGHT + i].value = (audioIO.active && audioIO.numInputs >= 2*i+1);
+		lights[OUTPUT_LIGHT + i].setBrightnessSmooth(fmaxf(0.0f, outputs[AUDIO_OUTPUT + i + 2].value));
 }
 
 
@@ -250,62 +249,67 @@ struct AudioInterfaceWidget16 : ModuleWidget {
 	AudioInterfaceWidget16(ExpertSleepers3 *module) : ModuleWidget(module) {
 		setPanel(SVG::load(assetPlugin(plugin, "res/ExpertSleepers3_Plastic.svg")));
 
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(3.7069211, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 0));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(15.307249, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 1));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(26.906193, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 2));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(38.506519, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 3));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(50.106845, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 4));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(61.707171, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 5));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(73.307497, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 6));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(84.907823, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 7));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(3.7069211, 70.144905)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 8));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(15.307249, 70.144905)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 9));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(26.906193, 70.144905)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 10));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(38.506519, 70.144905)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 11));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(50.106845, 70.144905)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 12));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(61.707171, 70.144905)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 13));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(73.307497, 70.144905)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 14));
-		addInput(Port::create<PJ301MPort>(mm2px(Vec(84.907823, 70.144905)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 15));
+		// addInput(Port::create<PJ301MPort>(mm2px(Vec(3.7069211, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 0));
+		// addInput(Port::create<PJ301MPort>(mm2px(Vec(15.307249, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 1));
+		// addInput(Port::create<PJ301MPort>(mm2px(Vec(26.906193, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 2));
+		// addInput(Port::create<PJ301MPort>(mm2px(Vec(38.506519, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 3));
+		// addInput(Port::create<PJ301MPort>(mm2px(Vec(50.106845, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 4));
+		// addInput(Port::create<PJ301MPort>(mm2px(Vec(61.707171, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 5));
+		// addInput(Port::create<PJ301MPort>(mm2px(Vec(73.307497, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 6));
+		// addInput(Port::create<PJ301MPort>(mm2px(Vec(84.907823, 55.530807)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 7));
+		addInput(Port::create<PJ301MPort>(mm2px(Vec(10, 42)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 8));
+		addInput(Port::create<PJ301MPort>(mm2px(Vec(10, 52)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 9));
+		addInput(Port::create<PJ301MPort>(mm2px(Vec(10, 62)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 10));
+		addInput(Port::create<PJ301MPort>(mm2px(Vec(10, 72)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 11));
+		addInput(Port::create<PJ301MPort>(mm2px(Vec(10, 82)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 12));
+		addInput(Port::create<PJ301MPort>(mm2px(Vec(10, 92)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 13));
+		addInput(Port::create<PJ301MPort>(mm2px(Vec(10, 102)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 14));
+		addInput(Port::create<PJ301MPort>(mm2px(Vec(10, 112)), Port::INPUT, module, ExpertSleepers3::AUDIO_INPUT + 15));
 
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.7069209, 92.143906)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 0));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.307249, 92.143906)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 1));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(26.906193, 92.143906)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 2));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.506519, 92.143906)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 3));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(50.106845, 92.143906)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 4));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(61.707171, 92.143906)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 5));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(73.307497, 92.143906)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 6));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(84.907823, 92.143906)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 7));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.7069209, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 8));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.307249, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 9));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(26.906193, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 10));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.506519, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 11));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(50.106845, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 12));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(61.707171, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 13));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(73.307497, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 14));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(84.907823, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 15));
+		// addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.7069209, 92.143906)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 0));
+		// addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.307249, 92.143906)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 1));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(30, 42)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 2));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(30, 52)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 3));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(30, 62)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 4));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(30, 72)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 5));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(30, 82)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 6));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(30, 92)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 7));
+		// addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.7069209, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 8));
+		// addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.307249, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 9));
+		// addOutput(Port::create<PJ301MPort>(mm2px(Vec(26.906193, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 10));
+		// addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.506519, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 11));
+		// addOutput(Port::create<PJ301MPort>(mm2px(Vec(50.106845, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 12));
+		// addOutput(Port::create<PJ301MPort>(mm2px(Vec(61.707171, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 13));
+		// addOutput(Port::create<PJ301MPort>(mm2px(Vec(73.307497, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 14));
+		// addOutput(Port::create<PJ301MPort>(mm2px(Vec(84.907823, 108.1443)), Port::OUTPUT, module, ExpertSleepers3::AUDIO_OUTPUT + 15));
 
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(12.524985, 54.577202)), module, ExpertSleepers3::INPUT_LIGHT + 0));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(35.725647, 54.577202)), module, ExpertSleepers3::INPUT_LIGHT + 1));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(58.926309, 54.577202)), module, ExpertSleepers3::INPUT_LIGHT + 2));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(82.126971, 54.577202)), module, ExpertSleepers3::INPUT_LIGHT + 3));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(12.524985, 69.158226)), module, ExpertSleepers3::INPUT_LIGHT + 4));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(35.725647, 69.158226)), module, ExpertSleepers3::INPUT_LIGHT + 5));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(58.926309, 69.158226)), module, ExpertSleepers3::INPUT_LIGHT + 6));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(82.126971, 69.158226)), module, ExpertSleepers3::INPUT_LIGHT + 7));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(9, 40)), module, ExpertSleepers3::INPUT_LIGHT + 0));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(9, 50)), module, ExpertSleepers3::INPUT_LIGHT + 1));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(9, 60)), module, ExpertSleepers3::INPUT_LIGHT + 2));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(9, 70)), module, ExpertSleepers3::INPUT_LIGHT + 3));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(9, 80)), module, ExpertSleepers3::INPUT_LIGHT + 4));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(9, 90)), module, ExpertSleepers3::INPUT_LIGHT + 5));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(9, 100)), module, ExpertSleepers3::INPUT_LIGHT + 6));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(9, 110)), module, ExpertSleepers3::INPUT_LIGHT + 7));
 
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(12.524985, 91.147583)), module, ExpertSleepers3::OUTPUT_LIGHT + 0));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(35.725647, 91.147583)), module, ExpertSleepers3::OUTPUT_LIGHT + 1));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(58.926309, 91.147583)), module, ExpertSleepers3::OUTPUT_LIGHT + 2));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(82.126971, 91.147583)), module, ExpertSleepers3::OUTPUT_LIGHT + 3));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(12.524985, 107.17003)), module, ExpertSleepers3::OUTPUT_LIGHT + 4));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(35.725647, 107.17003)), module, ExpertSleepers3::OUTPUT_LIGHT + 5));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(58.926309, 107.17003)), module, ExpertSleepers3::OUTPUT_LIGHT + 6));
-		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(82.126971, 107.17003)), module, ExpertSleepers3::OUTPUT_LIGHT + 7));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(29, 40)), module, ExpertSleepers3::OUTPUT_LIGHT + 0));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(29, 50)), module, ExpertSleepers3::OUTPUT_LIGHT + 1));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(29, 60)), module, ExpertSleepers3::OUTPUT_LIGHT + 2));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(29, 70)), module, ExpertSleepers3::OUTPUT_LIGHT + 3));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(29, 80)), module, ExpertSleepers3::OUTPUT_LIGHT + 4));
+		addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(29, 90)), module, ExpertSleepers3::OUTPUT_LIGHT + 5));
+		// addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(58.926309, 107.17003)), module, ExpertSleepers3::OUTPUT_LIGHT + 6));
+		// addChild(ModuleLightWidget::create<SmallLight<GreenLight>>(mm2px(Vec(82.126971, 107.17003)), module, ExpertSleepers3::OUTPUT_LIGHT + 7));
 
 		AudioWidget* audioWidget = Widget::create<AudioWidget>(mm2px(Vec(3.2122073, 10.837339)));
-		audioWidget->box.size = mm2px(Vec(90.5, 28));
+		audioWidget->box.size = mm2px(Vec(30, 28));
 		audioWidget->audioIO = &module->audioIO;
 		addChild(audioWidget);
+
+		addChild(Widget::create<ScrewBlack>(Vec(15, 0)));
+		addChild(Widget::create<ScrewBlack>(Vec(box.size.x-30, 0)));
+		addChild(Widget::create<ScrewBlack>(Vec(15, 365)));
+		addChild(Widget::create<ScrewBlack>(Vec(box.size.x-30, 365)));
 	}
 
 
